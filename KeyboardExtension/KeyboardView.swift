@@ -4,6 +4,7 @@ import UIKit
 private struct KeySpec {
     enum Kind {
         case tap(() -> Void)
+        case spaceCursor(tap: () -> Void, beginScrub: () -> Void, moveCursor: (Int) -> Void)
         case repeatAction(() -> Void)
         case koreanGesture(( [String]) -> Void)
         case crossSwipe((CrossSwipeOutput) -> Void)
@@ -594,7 +595,17 @@ struct KeyboardView: View {
             keys.append(extraMiddle.withWidth(1))
         }
         keys.append(
-            tapKey("space", action: { viewModel.handleEditingAction(.space) })
+            KeySpec(
+                label: "space",
+                widthUnits: 1,
+                secondary: false,
+                enabled: true,
+                kind: .spaceCursor(
+                    tap: { viewModel.handleEditingAction(.space) },
+                    beginScrub: { viewModel.beginCursorScrub() },
+                    moveCursor: { offset in viewModel.moveCursorHorizontally(by: offset) }
+                )
+            )
                 .withWidth(extraMiddle == nil && rightAccessory != nil ? 3 : (extraMiddle != nil || rightAccessory != nil ? 1.6 : 2.6))
         )
         if let rightAccessory {
@@ -631,6 +642,16 @@ private struct KeyboardRowView: View {
         switch key.kind {
         case .tap(let action):
             KeyButton(label: key.label, secondary: key.secondary, isEnabled: key.enabled, theme: theme, action: action)
+        case .spaceCursor(let tap, let beginScrub, let moveCursor):
+            SpaceCursorKey(
+                label: key.label,
+                secondary: key.secondary,
+                isEnabled: key.enabled,
+                theme: theme,
+                tapAction: tap,
+                beginScrub: beginScrub,
+                moveCursor: moveCursor
+            )
         case .repeatAction(let action):
             RepeatActionButton(label: key.label, secondary: key.secondary, isEnabled: key.enabled, theme: theme, action: action)
         case .koreanGesture(let action):
@@ -757,6 +778,157 @@ private struct KoreanGestureKey: View {
             return "ㅓ"
         }
         return nil
+    }
+}
+
+private struct SpaceCursorKey: View {
+    let label: String
+    var secondary = false
+    var isEnabled = true
+    let theme: KeyboardTheme
+    let tapAction: () -> Void
+    let beginScrub: () -> Void
+    let moveCursor: (Int) -> Void
+
+    @State private var touchStartTime: Date?
+    @State private var isPressed = false
+    @State private var isScrubbing = false
+    @State private var lastStep = 0
+    @State private var repeatTimer: Timer?
+    @State private var repeatDirection = 0
+
+    private let longPressThreshold: TimeInterval = 0.35
+    private let tapSlop: CGFloat = 10
+    private let stepWidth: CGFloat = 9
+    private let repeatActivationDistance: CGFloat = 72
+    private let repeatInterval: TimeInterval = 0.06
+
+    var body: some View {
+        keyLabel
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .foregroundStyle(keyForegroundColor)
+            .modifier(
+                OpenMoaKeyChrome(
+                    secondary: secondary,
+                    isEnabled: isEnabled,
+                    pressed: isPressed || isScrubbing,
+                    theme: theme
+                )
+            )
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        guard isEnabled else {
+                            return
+                        }
+                        if touchStartTime == nil {
+                            touchStartTime = Date()
+                            isPressed = true
+                        }
+
+                        let elapsed = Date().timeIntervalSince(touchStartTime ?? Date())
+                        guard elapsed >= longPressThreshold else {
+                            return
+                        }
+                        if !isScrubbing {
+                            isScrubbing = true
+                            beginScrub()
+                        }
+
+                        let step = Int((value.translation.width / stepWidth).rounded(.towardZero))
+                        let delta = step - lastStep
+                        guard delta != 0 else {
+                            updateAutoRepeat(for: value.translation.width)
+                            return
+                        }
+                        moveCursor(delta)
+                        lastStep = step
+                        updateAutoRepeat(for: value.translation.width)
+                    }
+                    .onEnded { value in
+                        guard isEnabled else {
+                            reset()
+                            return
+                        }
+
+                        let duration = touchStartTime.map { Date().timeIntervalSince($0) } ?? 0
+                        let distance = hypot(value.translation.width, value.translation.height)
+                        if !isScrubbing && duration < longPressThreshold && distance <= tapSlop {
+                            tapAction()
+                        }
+                        reset()
+                    }
+            )
+            .opacity(isEnabled ? 1 : 0.45)
+            .animation(.easeOut(duration: 0.08), value: isPressed || isScrubbing)
+            .accessibilityLabel(KeyLabelPresentation.make(for: label).accessibilityLabel)
+            .onDisappear {
+                stopAutoRepeat()
+            }
+    }
+
+    private var keyForegroundColor: Color {
+        guard isEnabled else {
+            return theme.disabledText
+        }
+        return secondary ? theme.secondaryText : theme.primaryText
+    }
+
+    @ViewBuilder
+    private var keyLabel: some View {
+        switch KeyLabelPresentation.make(for: label) {
+        case .text(let text):
+            Text(text)
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+        case .symbol(let name, let pointSize, let weight):
+            Image(systemName: name)
+                .font(.system(size: pointSize, weight: weight, design: .rounded))
+        }
+    }
+
+    private func reset() {
+        stopAutoRepeat()
+        touchStartTime = nil
+        isPressed = false
+        isScrubbing = false
+        lastStep = 0
+    }
+
+    private func updateAutoRepeat(for translationWidth: CGFloat) {
+        guard isScrubbing else {
+            stopAutoRepeat()
+            return
+        }
+
+        let direction: Int
+        if translationWidth >= repeatActivationDistance {
+            direction = 1
+        } else if translationWidth <= -repeatActivationDistance {
+            direction = -1
+        } else {
+            direction = 0
+        }
+
+        guard direction != 0 else {
+            stopAutoRepeat()
+            return
+        }
+        guard repeatDirection != direction || repeatTimer == nil else {
+            return
+        }
+
+        stopAutoRepeat()
+        repeatDirection = direction
+        repeatTimer = Timer.scheduledTimer(withTimeInterval: repeatInterval, repeats: true) { _ in
+            moveCursor(direction)
+        }
+    }
+
+    private func stopAutoRepeat() {
+        repeatTimer?.invalidate()
+        repeatTimer = nil
+        repeatDirection = 0
     }
 }
 

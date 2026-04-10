@@ -344,6 +344,18 @@ final class KeyboardViewModel: ObservableObject {
         delegate?.insertCommittedText("\n")
     }
 
+    func beginCursorScrub() {
+        commitComposition()
+    }
+
+    func moveCursorHorizontally(by offset: Int) {
+        guard offset != 0 else {
+            return
+        }
+        commitComposition()
+        delegate?.adjustTextPosition(byCharacterOffset: offset)
+    }
+
     private func append(jamoSequence: [String]) -> String {
         var composition = displayedComposition
         for jamo in jamoSequence {
