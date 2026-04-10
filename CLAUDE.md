@@ -5,107 +5,118 @@ working with code in this repository.
 
 ## 프로젝트 개요
 
-**OpenMoa**는 삼성 모아키 한국어 키보드를 재구현한 오픈소스 Android IME(입력기)입니다.
+**OpenMoa**는 삼성 모아키 한국어 입력 방식을 재구현한 오픈소스 iOS 커스텀 키보드 프로젝트입니다.
 자음 키를 누른 채 방향으로 드래그하여 모음을 입력하는 제스처 기반 한글 입력 방식을 사용합니다.
 
-- 패키지: `pe.aioo.openmoa`
+- 원본 Android 버전 저장소: `https://github.com/AiOO/OpenMoa`
+- 호스트 앱 번들 ID: `pe.aioo.openmoa.ios`
+- 키보드 익스텐션 번들 ID: `pe.aioo.openmoa.ios.keyboard`
 
 ## 빌드 및 테스트 명령어
 
 ```bash
-# 유닛 테스트 실행 (CI에서도 동일하게 사용)
-./gradlew testDebugUnitTest
+# 공유 한글 조합 엔진 유닛 테스트
+swift test
 
-# 기기 연결 테스트 실행
-./gradlew connectedAndroidTest
+# iOS 호스트 앱 빌드
+xcodebuild -project OpenMoa.xcodeproj \
+  -target OpenMoaKeyboardHost \
+  -sdk iphonesimulator \
+  CODE_SIGNING_ALLOWED=NO build
 
-# 디버그 APK 빌드
-./gradlew assembleDebug
+# 키보드 익스텐션 빌드
+xcodebuild -project OpenMoa.xcodeproj \
+  -target OpenMoaKeyboardExtension \
+  -sdk iphonesimulator \
+  CODE_SIGNING_ALLOWED=NO build
 ```
 
-CI는 GitHub Actions에서 JDK 21 + Ubuntu 환경으로 `testDebugUnitTest`를 실행합니다.
+공유 조합 엔진 테스트는 SwiftPM의 `Tests/OpenMoaKeyboardCoreTests`를 실행합니다.
 
 ## 아키텍처
 
 ### 핵심 레이어
 
-**1. IME 서비스 (`OpenMoaIME.kt`)**
+**1. 키보드 익스텐션 (`KeyboardExtension/`)**
 
-- `InputMethodService`를 상속한 메인 서비스
-- 10가지 키보드 모드(`IMEMode` enum) 관리: 한국어/영어 × 기본/특수문자/숫자/방향키/전화번호패드
-- `KeyboardFrameLayout`에서 올라오는 `BaseKeyMessage`(문자 또는 특수키) 수신 후 InputConnection에 전달
-- Koin DI로 `Config` 인스턴스를 주입받음
+- `KeyboardViewController`: `UIInputViewController`를 상속한 메인 진입점
+- `textDocumentProxy`를 통해 텍스트 입력, 삭제, 커서 이동 수행
+- `KeyboardViewModel`과 연결되어 키보드 모드와 조합 중 문자열 상태를 반영
 
-**2. 한글 조합 엔진 (`hangul/`)**
+**2. 한글 조합 엔진 (`Sources/OpenMoaKeyboardCore/`)**
 
-- `HangulAssembler`: 자음·모음 조합, 복합 자음/모음 처리, 아래아(ㆍ, ᆢ) 사용.
-- HangulParser 라이브러리(소스 포함)를 활용해 유효성 검증
-- `MoeumGestureProcessor`: 8방향 제스처 시퀀스를 모음으로 변환
+- `HangulAssembler`: 자음·모음 조합, 복합 자음/모음 처리
+- `MoeumGestureProcessor`: 제스처 시퀀스를 모음으로 변환
+- `HangulUnicode`: 한글 유니코드 조합 유틸리티
 
-**3. 뷰 레이어 (`view/`)**
+**3. 뷰 레이어 (`KeyboardExtension/KeyboardView.swift`, `App/`)**
 
-- `KeyboardFrameLayout`: 키보드 레이아웃 전환 컨테이너
-- `keyboardview/`:
-   - `OpenMoaView`(한국어 모아키), `QuertyView`(영어),
-   - `ArrowView`, `NumberView`, `PhoneView`, `PunctuationView`
-- `keytouchlistener/`: 키 유형별 터치 핸들러 (아래 참조)
+- `KeyboardView`: SwiftUI 기반 키보드 레이아웃
+- `NextKeyboardButton`: 시스템 키보드 전환 버튼 브리지
+- `ContentView`: 호스트 앱에서 키보드 활성화 방법과 iOS 제약사항 안내
 
-**4. 터치 리스너 계층**
+**4. 상태 관리 계층 (`KeyboardViewModel.swift`)**
 
-- `BaseKeyTouchListener` (추상): 모든 리스너의 기반
-- `JaumKeyTouchListener`: 자음 키 + 제스처 감지 (`atan2` 각도 계산, 50px 임계값)
-- `FunctionalKeyTouchListener`: 상태 변경 키 (shift, 모드 전환)
-- `SimpleKeyTouchListener`: 단순 단일 동작 키
-- `CrossKeyTouchListener`: 방향키
-- `RepeatKeyTouchListener`: 길게 누르면 반복되는 키
+- `KeyboardViewModel`: 모든 입력 상태의 중심
+- `Mode`: 한국어/영어 × 기본/특수문자/숫자/방향키/전화번호패드 + 이모지
+- `ShiftState`: 영어 키보드 shift 상태 관리
+- 입력 필드의 `UIKeyboardType`에 따라 숫자/전화번호 패드 모드 강제 전환
 
 ### 한글 입력 플로우
 
-1. 사용자가 자음 키 누름 → `JaumKeyTouchListener`가 드래그 방향 감지
-2. `MoeumGestureProcessor`가 제스처 시퀀스 → 모음 결정
-3. `HangulAssembler`가 자음+모음 조합 → 조합 중 문자 표시
-4. 다음 자음 입력 또는 액션 키 → 문자 확정 후 InputConnection 전달
+1. 사용자가 한국어 키를 누르거나 드래그함
+2. `KeyboardView`가 입력 이벤트를 `KeyboardViewModel`에 전달함
+3. `MoeumGestureProcessor`가 제스처 시퀀스를 모음으로 변환함
+4. `HangulAssembler`가 자음+모음을 조합해 조합 중 문자열을 계산함
+5. `KeyboardViewController`가 `textDocumentProxy`를 통해 조합 문자열을 교체하거나 확정 입력함
 
-### IMEMode 확장 시 주의사항
+### 키보드 모드 확장 시 주의사항
 
-`IMEMode`에 새 항목을 추가하면 `OpenMoaIME.kt` 내 모든 exhaustive `when (imeMode)` 분기에
-케이스를 추가해야 합니다. 누락 시 컴파일 오류가 발생합니다. 대상 위치:
+`KeyboardViewModel.Mode`에 새 항목을 추가하면 관련 분기에도 함께 케이스를 추가해야 합니다.
+누락 시 모드 전환은 되더라도 복귀 경로 또는 특정 키 레이아웃이 깨질 수 있습니다. 대상 위치:
 
-- `SpecialKey.LANGUAGE`, `HANJA_NUMBER_PUNCTUATION`, `ARROW` 처리
-- `onStartInputView()` 내 `TYPE_CLASS_NUMBER`, `TYPE_CLASS_PHONE` 분기
-- `returnFromNonStringKeyboard()`
+- `Mode.language`, `isEnglish`, `isNumber`, `isPhone`
+- `toggleLanguageMode()`
+- `toggleHanjaNumberPunctuationMode()`
+- `toggleArrowMode()`
+- 숫자/전화번호 패드 강제 모드 복귀 로직
+- `KeyboardView` 내 레이아웃 분기
 
-특정 키보드에서만 진입 가능한 모드는 해당 언어 계열 조건과 쉼표(,)로 묶어 처리합니다.
+특정 언어 계열에서만 진입 가능한 모드는 해당 언어의 기본/보조 모드와 함께
+묶어서 처리하는 편이 안전합니다.
 
-예) `IME_EMOJI`는 한국어 키보드(`OpenMoaView`)에서만 진입 가능하므로,
-대부분의 위 분기에서 `IME_KO_*` 조건들과 함께 묶어 별도 분기 없이 처리합니다.
+예) `emoji` 모드는 현재 한국어 계열에서 진입하므로, 언어 복귀 로직에서
+`korean` 계열과 함께 처리합니다.
 
 ### 메시지 시스템
 
-키 이벤트는 `LocalBroadcastManager`를 통해 전달:
+키 입력은 Android처럼 브로드캐스트하지 않고 `KeyboardView` → `KeyboardViewModel` →
+`KeyboardViewController` 순으로 전달됩니다.
 
-- `StringKeyMessage`: 문자 키 (일반 문자)
-- `SpecialKeyMessage`: 특수 동작 (`SpecialKey` enum - 27가지: BACKSPACE,
-  ENTER, LANGUAGE, 방향키, COPY/CUT/PASTE 등)
+- `KeyboardView`: 터치/드래그 입력 수집
+- `KeyboardViewModel`: 조합 상태 및 편집 액션 결정
+- `KeyboardViewModelDelegate`: 실제 텍스트 삽입, 삭제, 커서 이동 수행
 
-### 설정 (`Config`)
+### 설정
 
-Koin으로 싱글턴 제공:
+프로젝트 설정은 주로 Xcode 프로젝트와 plist에 정의되어 있습니다.
 
-- `longPressRepeatTime`: 50ms
-- `longPressThresholdTime`: 500ms
-- `gestureThreshold`: 50px
-- `hapticFeedback`: true
-- `maxSuggestionCount`: 10
+- `OpenMoa.xcodeproj/project.pbxproj`: 타깃, 번들 ID, 빌드 설정
+- `Config/HostApp-Info.plist`: 호스트 앱 정보
+- `Config/KeyboardExtension-Info.plist`: 키보드 익스텐션 정보
+- `RequestsOpenAccess`: 현재 `false`
 
 ## 주요 파일 위치
 
 | 파일 | 역할 |
 |------|------|
-| `app/src/main/kotlin/pe/aioo/openmoa/OpenMoaIME.kt` | 메인 IME 서비스 |
-| `app/src/main/kotlin/pe/aioo/openmoa/hangul/HangulAssembler.kt` | 한글 자모 조합 엔진 |
-| `app/src/main/kotlin/pe/aioo/openmoa/hangul/MoeumGestureProcessor.kt` | 제스처→모음 변환 |
-| `app/src/main/kotlin/pe/aioo/openmoa/view/keyboardview/OpenMoaView.kt` | 한국어 키보드 레이아웃 |
-| `app/src/main/kotlin/pe/aioo/openmoa/view/keytouchlistener/JaumKeyTouchListener.kt` | 자음+제스처 터치 처리 |
-| `app/src/main/kotlin/pe/aioo/openmoa/config/Config.kt` | 설정 데이터 클래스 |
-| `app/src/main/res/values/strings.xml` | 모든 UI 문자열 (한국어) |
+| `KeyboardExtension/KeyboardViewController.swift` | 메인 키보드 익스텐션 컨트롤러 |
+| `KeyboardExtension/KeyboardViewModel.swift` | 키보드 상태 및 입력 처리 |
+| `KeyboardExtension/KeyboardView.swift` | SwiftUI 키보드 레이아웃 |
+| `KeyboardExtension/NextKeyboardButton.swift` | 다음 키보드 버튼 브리지 |
+| `Sources/OpenMoaKeyboardCore/HangulAssembler.swift` | 한글 자모 조합 엔진 |
+| `Sources/OpenMoaKeyboardCore/MoeumGestureProcessor.swift` | 제스처→모음 변환 |
+| `Sources/OpenMoaKeyboardCore/HangulUnicode.swift` | 한글 유니코드 조합 유틸리티 |
+| `App/ContentView.swift` | 호스트 앱 안내 화면 |
+| `Config/KeyboardExtension-Info.plist` | 키보드 익스텐션 설정 |
+| `Package.swift` | 공유 코어 모듈과 테스트 타깃 정의 |

@@ -1,8 +1,11 @@
-![Android CI][101]
+![iOS CI][101]
 
 # OpenMoa Project
 
 이 프로젝트는 모아키를 오픈 소스로 재구현하는 프로젝트입니다.
+
+원본 Android 버전 저장소는 [AiOO/OpenMoa](https://github.com/AiOO/OpenMoa)이며,
+이 저장소는 그 구현을 iOS 커스텀 키보드로 포팅하는 작업을 위한 저장소입니다.
 
 ## 시작하기 전에
 
@@ -22,6 +25,10 @@
 사용하지 않고 있기 때문에 모아키를 제 스마트폰에서 사용할 수 있는 방법이
 필요했습니다.
 
+이 저장소는 그 재구현 작업을 iOS 환경으로 옮겨 계속 진행하기 위한 기반을 담고
+있습니다. 실제 입력기는 iOS 커스텀 키보드 익스텐션으로 동작하고, 함께 포함된
+호스트 앱은 키보드 설치와 활성화 절차를 안내합니다.
+
 ### 특허에 대하여
 
 삼성전자의 모아키 입력 방식은 [터치 디바이스에서 문자 입력 방법 및 장치][2]라는
@@ -35,15 +42,38 @@
 
 ### 실사용이 가능한가요?
 
-한자 입력기와 추가로 구현하고자 하는 이모지 입력기 외에는 기존 모아키 동작이
-전부 구현 완료되어서 실사용이 가능하다고 판단하고 있습니다. 의도대로 동작하지
-않는다면 구현상의 버그입니다. 사용 중 문제가 발생한다면 이슈를 남겨주세요!
+현재 iOS 포트는 한국어 제스처 키보드, 영어 키보드, 특수문자, 숫자 키보드,
+방향키, 전화번호 패드, 이모지 키보드를 포함합니다. iOS 커스텀 키보드 제약 안에서
+실사용이 가능하도록 구현하는 것을 목표로 하고 있으며, 의도대로 동작하지
+않는다면 구현상의 버그입니다. 사용 중 문제가 발생한다면 이슈를 남겨주세요.
+
+다만 iOS의 커스텀 키보드는 플랫폼 제약이 있습니다. 보안 입력 필드에서는 시스템
+키보드가 대신 표시될 수 있고, 텍스트 선택과 일부 편집 동작은 호스트 앱 제어
+영역이기 때문에 완전히 동일하게 재현하기 어렵습니다.
 
 ### 어떻게 사용할 수 있나요?
 
-[Android Studio][4]를 설치하신 후 이 프로젝트를 직접 빌드하여 사용하실 수
-있습니다. 빌드 또는 사용하시기 전에 [특허에 대하여](#특허에-대하여) 섹션을
-반드시 읽어주세요.
+Xcode를 설치하신 후 이 프로젝트를 직접 빌드하여 사용하실 수 있습니다. 빌드 또는
+사용하시기 전에 [특허에 대하여](#특허에-대하여) 섹션을 반드시 읽어주세요.
+
+공유 한글 조합 엔진 테스트:
+
+```bash
+swift test
+```
+
+시뮬레이터용 호스트 앱 빌드:
+
+```bash
+xcodebuild -project OpenMoa.xcodeproj \
+  -target OpenMoaKeyboardHost \
+  -sdk iphonesimulator \
+  CODE_SIGNING_ALLOWED=NO build
+```
+
+앱을 설치한 뒤에는 iOS에서 `설정 > 일반 > 키보드 > 키보드 > 새로운 키보드 추가`
+경로로 이동해 `OpenMoa Keyboard`를 추가하고, 텍스트 입력창에서 지구본 키를 눌러
+전환해 사용할 수 있습니다.
 
 ### 기여는 어떻게 할 수 있나요?
 
@@ -58,11 +88,10 @@
 
 이 프로젝트는 다음 오픈 소스 프로젝트의 코드를 포함합니다:
 
-- [HangulParser][5] (MIT License)
+- [HangulParser][4] (MIT License)
 
 [1]: https://www.youtube.com/watch?v=Mcz0sSz1Ky4
 [2]: https://doi.org/10.8080/1020110078022
 [3]: https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%ED%8A%B9%ED%97%88%EB%B2%95
-[4]: https://developer.android.com/studio
-[5]: https://github.com/kimkevin/HangulParser
-[101]: https://github.com/AiOO/OpenMoa/actions/workflows/test.yml/badge.svg
+[4]: https://github.com/kimkevin/HangulParser
+[101]: https://github.com/WKBae/OpenMoa/actions/workflows/test.yml/badge.svg
