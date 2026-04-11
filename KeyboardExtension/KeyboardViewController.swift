@@ -8,6 +8,12 @@ final class KeyboardViewController: UIInputViewController {
     private var heightConstraint: NSLayoutConstraint?
     private var cancellables = Set<AnyCancellable>()
 
+    override func loadView() {
+        let inputView = UIInputView(frame: .zero, inputViewStyle: .keyboard)
+        inputView.allowsSelfSizing = true
+        view = inputView
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         KeyboardPreferences.migrateLegacyValuesIfNeeded()
@@ -42,6 +48,7 @@ final class KeyboardViewController: UIInputViewController {
         let hostingController = UIHostingController(rootView: rootView)
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
         hostingController.view.backgroundColor = .clear
+        hostingController.view.isOpaque = false
 
         addChild(hostingController)
         view.addSubview(hostingController.view)

@@ -142,10 +142,7 @@ struct KeyboardLayoutMetrics {
     }
 }
 
-private struct KeyboardTheme {
-    let backgroundTop: Color
-    let backgroundBottom: Color
-    let panelFill: Color
+struct KeyboardTheme {
     let primaryKey: Color
     let primaryPressed: Color
     let secondaryKey: Color
@@ -160,30 +157,24 @@ private struct KeyboardTheme {
         switch colorScheme {
         case .dark:
             return KeyboardTheme(
-                backgroundTop: Color(red: 0.12, green: 0.13, blue: 0.16),
-                backgroundBottom: Color(red: 0.09, green: 0.10, blue: 0.13),
-                panelFill: Color.white.opacity(0.12),
-                primaryKey: Color(red: 0.30, green: 0.31, blue: 0.35),
-                primaryPressed: Color(red: 0.38, green: 0.39, blue: 0.44),
-                secondaryKey: Color(red: 0.30, green: 0.31, blue: 0.35),
-                secondaryPressed: Color(red: 0.38, green: 0.39, blue: 0.44),
-                disabledKey: Color(red: 0.18, green: 0.19, blue: 0.22),
-                border: Color.white.opacity(0.10),
+                primaryKey: Color.white.opacity(0.16),
+                primaryPressed: Color.white.opacity(0.24),
+                secondaryKey: Color.white.opacity(0.12),
+                secondaryPressed: Color.white.opacity(0.20),
+                disabledKey: Color.white.opacity(0.08),
+                border: Color.white.opacity(0.14),
                 primaryText: .white,
                 secondaryText: .white,
                 disabledText: Color.white.opacity(0.35)
             )
         default:
             return KeyboardTheme(
-                backgroundTop: Color(red: 0.79, green: 0.81, blue: 0.85),
-                backgroundBottom: Color(red: 0.73, green: 0.75, blue: 0.80),
-                panelFill: Color.white.opacity(0.28),
-                primaryKey: Color(red: 0.99, green: 0.99, blue: 1.0),
-                primaryPressed: Color(red: 0.88, green: 0.89, blue: 0.92),
-                secondaryKey: Color(red: 0.99, green: 0.99, blue: 1.0),
-                secondaryPressed: Color(red: 0.88, green: 0.89, blue: 0.92),
-                disabledKey: Color(red: 0.82, green: 0.84, blue: 0.88),
-                border: Color.black.opacity(0.10),
+                primaryKey: Color.white.opacity(0.91),
+                primaryPressed: Color.white.opacity(0.74),
+                secondaryKey: Color.white.opacity(0.86),
+                secondaryPressed: Color.white.opacity(0.68),
+                disabledKey: Color.white.opacity(0.34),
+                border: Color.black.opacity(0.09),
                 primaryText: Color.black.opacity(0.92),
                 secondaryText: Color.black.opacity(0.92),
                 disabledText: Color.black.opacity(0.35)
@@ -194,14 +185,14 @@ private struct KeyboardTheme {
 
 private enum KeyLabelPresentation {
     case text(String)
-    case symbol(name: String, pointSize: CGFloat = 18, weight: Font.Weight = .semibold)
+    case symbol(name: String, pointSize: CGFloat = 18, weight: Font.Weight = .regular)
 
     static func make(for label: String) -> KeyLabelPresentation {
         switch label {
         case "emoji":
             .symbol(name: "face.smiling", pointSize: 21)
         case "delete", "backspace":
-            .symbol(name: "delete.left", pointSize: 20)
+            .symbol(name: "delete.left", pointSize: 18, weight: .regular)
         case "search":
             .symbol(name: "magnifyingglass", pointSize: 19)
         case "return":
@@ -224,6 +215,8 @@ private enum KeyLabelPresentation {
             .symbol(name: "link", pointSize: 18)
         case "close":
             .symbol(name: "xmark", pointSize: 18)
+        case "space":
+            .text("")
         case "shift":
             .symbol(name: "shift", pointSize: 19)
         case "shift*":
@@ -817,7 +810,7 @@ private struct KeyButton: View {
         switch KeyLabelPresentation.make(for: label) {
         case .text(let text):
             Text(text)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .font(.system(size: 17, weight: .regular, design: .rounded))
         case .symbol(let name, let pointSize, let weight):
             Image(systemName: name)
                 .font(.system(size: pointSize, weight: weight, design: .rounded))
@@ -848,12 +841,12 @@ private struct KoreanGestureKey: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Text(label)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .semibold, design: .rounded))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if let hint {
                 Text(hint)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .font(.system(size: 11, weight: .regular, design: .rounded))
                     .foregroundStyle(isEnabled ? theme.primaryText.opacity(0.45) : theme.disabledText)
                     .padding(.top, 6)
                     .padding(.trailing, 8)
@@ -1186,22 +1179,22 @@ private struct CrossSwipeKey: View {
         if label == ".,?!" {
             ZStack {
                 Text(",")
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .offset(y: -7)
 
                 HStack {
                     Text("?")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                     Spacer(minLength: 0)
                     Text("!")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, 8)
 
                 Text(".")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 18, weight: .regular, design: .rounded))
                     .baselineOffset(-2)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
             }
@@ -1209,12 +1202,81 @@ private struct CrossSwipeKey: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             Text(label)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .regular, design: .rounded))
         }
     }
 }
 
+final class UIKitKeySurfaceView: UIView {
+    private let fallbackView = UIView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        layer.cornerRadius = 12
+        layer.masksToBounds = true
+
+        fallbackView.translatesAutoresizingMaskIntoConstraints = false
+        fallbackView.isUserInteractionEnabled = false
+        fallbackView.layer.cornerRadius = 12
+        fallbackView.layer.masksToBounds = true
+        addSubview(fallbackView)
+
+        NSLayoutConstraint.activate([
+            fallbackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            fallbackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            fallbackView.topAnchor.constraint(equalTo: topAnchor),
+            fallbackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func update(secondary: Bool, isEnabled: Bool, pressed: Bool, theme: KeyboardTheme) {
+        alpha = isEnabled ? 1 : 0.45
+        fallbackView.isHidden = false
+        fallbackView.backgroundColor = fallbackColor(secondary: secondary, pressed: pressed, theme: theme)
+        if #available(iOSApplicationExtension 26.0, *) {
+            layer.borderWidth = 0
+            layer.borderColor = nil
+        } else {
+            layer.borderWidth = 1
+            layer.borderColor = UIColor(theme.border).cgColor
+        }
+        backgroundColor = .clear
+    }
+
+    private func fallbackColor(secondary: Bool, pressed: Bool, theme: KeyboardTheme) -> UIColor {
+        if secondary {
+            return UIColor(pressed ? theme.secondaryPressed : theme.secondaryKey)
+        }
+        return UIColor(pressed ? theme.primaryPressed : theme.primaryKey)
+    }
+}
+
+private struct UIKitKeyChromeBackground: UIViewRepresentable {
+    let secondary: Bool
+    let isEnabled: Bool
+    let pressed: Bool
+    let theme: KeyboardTheme
+
+    func makeUIView(context: Context) -> UIKitKeySurfaceView {
+        UIKitKeySurfaceView()
+    }
+
+    func updateUIView(_ uiView: UIKitKeySurfaceView, context: Context) {
+        uiView.update(secondary: secondary, isEnabled: isEnabled, pressed: pressed, theme: theme)
+    }
+}
+
 private struct RepeatActionButton: UIViewRepresentable {
+    private static let surfaceViewTag = 7_402
+    private static let titleLabelTag = 7_403
+    private static let imageViewTag = 7_404
+
     let label: String
     var secondary = false
     var isEnabled = true
@@ -1228,10 +1290,10 @@ private struct RepeatActionButton: UIViewRepresentable {
     func makeUIView(context: Context) -> UIButton {
         let button = UIButton(type: .system)
         button.layer.cornerRadius = 12
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.separator.cgColor
+        button.clipsToBounds = false
         button.addTarget(context.coordinator, action: #selector(Coordinator.touchDown), for: .touchDown)
         button.addTarget(context.coordinator, action: #selector(Coordinator.touchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
+        installForegroundViews(in: button)
         return button
     }
 
@@ -1239,38 +1301,96 @@ private struct RepeatActionButton: UIViewRepresentable {
         let presentation = KeyLabelPresentation.make(for: label)
         uiView.isEnabled = isEnabled
         uiView.alpha = isEnabled ? 1 : 0.45
-        uiView.backgroundColor = backgroundColor(pressed: false)
-        uiView.layer.borderColor = UIColor(theme.border).cgColor
-        uiView.setTitleColor(UIColor(secondary ? theme.secondaryText : theme.primaryText), for: .normal)
-        uiView.tintColor = UIColor(secondary ? theme.secondaryText : theme.primaryText)
+        applyBackground(to: uiView, pressed: false)
+        let foregroundColor = UIColor(secondary ? theme.secondaryText : theme.primaryText)
+        uiView.setTitle(nil, for: .normal)
+        uiView.setImage(nil, for: .normal)
+        uiView.setTitleColor(foregroundColor, for: .normal)
+        uiView.tintColor = foregroundColor
         uiView.accessibilityLabel = presentation.accessibilityLabel
+        let titleLabel = uiView.viewWithTag(Self.titleLabelTag) as? UILabel
+        let imageView = uiView.viewWithTag(Self.imageViewTag) as? UIImageView
         switch presentation {
         case .text(let text):
-            uiView.setTitle(text, for: .normal)
-            uiView.setImage(nil, for: .normal)
-            uiView.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+            titleLabel?.isHidden = false
+            titleLabel?.text = text
+            titleLabel?.textColor = foregroundColor
+            titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
+            imageView?.isHidden = true
         case .symbol(let name, let pointSize, _):
-            uiView.setTitle(nil, for: .normal)
-            uiView.setImage(UIImage(systemName: name), for: .normal)
-            uiView.setPreferredSymbolConfiguration(
-                UIImage.SymbolConfiguration(pointSize: pointSize, weight: .semibold),
-                forImageIn: .normal
-            )
+            titleLabel?.isHidden = true
+            imageView?.isHidden = false
+            let symbolConfiguration: UIImage.SymbolConfiguration
+            if name == "delete.left" {
+                symbolConfiguration = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .regular, scale: .medium)
+            } else {
+                symbolConfiguration = UIImage.SymbolConfiguration(pointSize: pointSize, weight: .regular)
+            }
+            imageView?.preferredSymbolConfiguration = symbolConfiguration
+            imageView?.image = UIImage(systemName: name, withConfiguration: symbolConfiguration)
+            imageView?.tintColor = foregroundColor
         }
         context.coordinator.action = action
         context.coordinator.isEnabled = isEnabled
         context.coordinator.secondary = secondary
         context.coordinator.theme = theme
+        context.coordinator.applyBackground = applyBackground
     }
 
-    private func backgroundColor(pressed: Bool) -> UIColor {
-        guard isEnabled else {
-            return UIColor(theme.disabledKey)
+    private func applyBackground(to button: UIButton, pressed: Bool) {
+        button.configuration = nil
+        button.backgroundColor = .clear
+        let surfaceView = ensureSurfaceView(in: button)
+        surfaceView.update(secondary: secondary, isEnabled: isEnabled, pressed: pressed, theme: theme)
+    }
+
+    private func ensureSurfaceView(in button: UIButton) -> UIKitKeySurfaceView {
+        if let existing = button.viewWithTag(Self.surfaceViewTag) as? UIKitKeySurfaceView {
+            return existing
         }
-        if secondary {
-            return UIColor(pressed ? theme.secondaryPressed : theme.secondaryKey)
+
+        let surfaceView = UIKitKeySurfaceView()
+        surfaceView.tag = Self.surfaceViewTag
+        surfaceView.translatesAutoresizingMaskIntoConstraints = false
+        button.insertSubview(surfaceView, at: 0)
+        NSLayoutConstraint.activate([
+            surfaceView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            surfaceView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            surfaceView.topAnchor.constraint(equalTo: button.topAnchor),
+            surfaceView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+        ])
+        return surfaceView
+    }
+
+    private func installForegroundViews(in button: UIButton) {
+        guard button.viewWithTag(Self.titleLabelTag) == nil, button.viewWithTag(Self.imageViewTag) == nil else {
+            return
         }
-        return UIColor(pressed ? theme.primaryPressed : theme.primaryKey)
+
+        let titleLabel = UILabel()
+        titleLabel.tag = Self.titleLabelTag
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.textAlignment = .center
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.75
+        button.addSubview(titleLabel)
+
+        let imageView = UIImageView()
+        imageView.tag = Self.imageViewTag
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .center
+        button.addSubview(imageView)
+
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            titleLabel.topAnchor.constraint(equalTo: button.topAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+            imageView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            imageView.topAnchor.constraint(equalTo: button.topAnchor),
+            imageView.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+        ])
     }
 
     final class Coordinator: NSObject {
@@ -1278,6 +1398,7 @@ private struct RepeatActionButton: UIViewRepresentable {
         var isEnabled = true
         var secondary = false
         var theme: KeyboardTheme = .make(for: .light)
+        var applyBackground: ((UIButton, Bool) -> Void)?
         private var repeatTimer: Timer?
         private var delayedStart: DispatchWorkItem?
 
@@ -1289,7 +1410,7 @@ private struct RepeatActionButton: UIViewRepresentable {
             guard isEnabled else {
                 return
             }
-            sender.backgroundColor = UIColor(secondary ? theme.secondaryPressed : theme.primaryPressed)
+            applyBackground?(sender, true)
             action()
             let workItem = DispatchWorkItem { [weak self] in
                 guard let self else {
@@ -1304,7 +1425,7 @@ private struct RepeatActionButton: UIViewRepresentable {
         }
 
         @objc func touchUp(_ sender: UIButton) {
-            sender.backgroundColor = UIColor(secondary ? theme.secondaryKey : theme.primaryKey)
+            applyBackground?(sender, false)
             delayedStart?.cancel()
             delayedStart = nil
             repeatTimer?.invalidate()
@@ -1340,26 +1461,17 @@ private struct OpenMoaKeyChrome: ViewModifier {
     var pressed = false
     let theme: KeyboardTheme
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         content
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(backgroundColor)
+                UIKitKeyChromeBackground(
+                    secondary: secondary,
+                    isEnabled: isEnabled,
+                    pressed: pressed,
+                    theme: theme
+                )
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(theme.border, lineWidth: 1)
-            )
-    }
-
-    private var backgroundColor: Color {
-        guard isEnabled else {
-            return theme.disabledKey
-        }
-        if secondary {
-            return pressed ? theme.secondaryPressed : theme.secondaryKey
-        }
-        return pressed ? theme.primaryPressed : theme.primaryKey
     }
 
 }
