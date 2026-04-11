@@ -75,4 +75,60 @@ final class HangulAssemblerTests: XCTestCase {
         XCTAssertEqual(assembler.appendJamo("ㆍ"), "뷀")
         XCTAssertEqual(assembler.unresolved, "ㄱㆍ")
     }
+
+    func testBackspaceDeletesFromVowelFirstWhenEnabled() {
+        let assembler = HangulAssembler()
+        _ = assembler.appendJamo("ㄱ")
+        _ = assembler.appendJamo("ㅏ")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: true)
+
+        XCTAssertEqual(assembler.unresolved, "ㄱ")
+    }
+
+    func testBackspaceDeletesWholeSyllableWhenDisabledWithoutJongseong() {
+        let assembler = HangulAssembler()
+        _ = assembler.appendJamo("ㄱ")
+        _ = assembler.appendJamo("ㅏ")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: false)
+
+        XCTAssertNil(assembler.unresolved)
+    }
+
+    func testBackspaceStillDeletesOnlyJongseongWhenDisabled() {
+        let assembler = HangulAssembler()
+        _ = assembler.appendJamo("ㄱ")
+        _ = assembler.appendJamo("ㅏ")
+        _ = assembler.appendJamo("ㅇ")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: false)
+
+        XCTAssertEqual(assembler.unresolved, "가")
+    }
+
+    func testBackspaceDisassemblesComplexJongseongStepByStep() {
+        let assembler = HangulAssembler()
+        _ = assembler.appendJamo("ㅇ")
+        _ = assembler.appendJamo("ㅏ")
+        _ = assembler.appendJamo("ㄹ")
+        _ = assembler.appendJamo("ㅎ")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: false)
+        XCTAssertEqual(assembler.unresolved, "알")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: false)
+        XCTAssertEqual(assembler.unresolved, "아")
+    }
+
+    func testBackspaceDeletesComplexVowelAsWholeWhenEnabled() {
+        let assembler = HangulAssembler()
+        _ = assembler.appendJamo("ㄱ")
+        _ = assembler.appendJamo("ㅗ")
+        _ = assembler.appendJamo("ㅣ")
+
+        assembler.removeForBackspace(deleteStartsWithVowel: true)
+
+        XCTAssertEqual(assembler.unresolved, "ㄱ")
+    }
 }

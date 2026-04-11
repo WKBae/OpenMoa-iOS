@@ -204,11 +204,54 @@ public final class HangulAssembler {
         return (try? HangulUnicode.assemble(jamoList)) ?? jamoList.joined()
     }
 
+    public func removeForBackspace(deleteStartsWithVowel: Bool) {
+        guard !jamoList.isEmpty else {
+            return
+        }
+
+        if deleteStartsWithVowel || hasJongseongInCurrentSyllable {
+            removeLastInputStep()
+        } else {
+            clear()
+        }
+    }
+
     public func removeLastJamo() {
         _ = jamoList.popLast()
     }
 
     public func clear() {
         jamoList.removeAll()
+    }
+
+    private var hasJongseongInCurrentSyllable: Bool {
+        jamoList.count == 3 && jaeumSet.contains(jamoList[2])
+    }
+
+    private func removeLastInputStep() {
+        guard let lastJamo = jamoList.popLast() else {
+            return
+        }
+
+        if let reducedJamo = reducedJongseong(from: lastJamo) {
+            jamoList.append(reducedJamo)
+        }
+    }
+
+    private func reducedJongseong(from jamo: String) -> String? {
+        switch jamo {
+        case "ㄳ": "ㄱ"
+        case "ㄵ": "ㄴ"
+        case "ㄶ": "ㄴ"
+        case "ㄺ": "ㄹ"
+        case "ㄻ": "ㄹ"
+        case "ㄼ": "ㄹ"
+        case "ㄽ": "ㄹ"
+        case "ㄾ": "ㄹ"
+        case "ㄿ": "ㄹ"
+        case "ㅀ": "ㄹ"
+        case "ㅄ": "ㅂ"
+        default: nil
+        }
     }
 }
