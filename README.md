@@ -79,7 +79,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 ```
 
 앱을 설치한 뒤에는 iOS에서 `설정 > 일반 > 키보드 > 키보드 > 새로운 키보드 추가`
-경로로 이동해 `OpenMoa Keyboard`를 추가하고, 텍스트 입력창에서 지구본 키를 눌러
+경로로 이동해 `OpenMoa`를 추가하고, 텍스트 입력창에서 지구본 키를 눌러
 전환해 사용할 수 있습니다.
 
 키보드별 세부 설정은 iOS에서 `설정 > 앱 > OpenMoa`로 들어가 조정할 수 있습니다.
