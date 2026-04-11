@@ -207,17 +207,8 @@ struct KeyboardView: View {
     }
 
     var body: some View {
-        Group {
-            if #available(iOS 26, *) {
-                GlassEffectContainer(spacing: rowSpacing) {
-                    keyboardBody
-                        .padding(keyboardPadding)
-                }
-            } else {
-                keyboardBody
-                    .padding(keyboardPadding)
-            }
-        }
+        keyboardBody
+            .padding(keyboardPadding)
     }
 
     @ViewBuilder
