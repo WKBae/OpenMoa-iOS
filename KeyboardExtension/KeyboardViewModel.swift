@@ -19,7 +19,7 @@ final class KeyboardViewModel: ObservableObject {
         case english
     }
 
-    enum Mode {
+    enum Mode: Equatable {
         case korean
         case english
         case koreanPunctuation

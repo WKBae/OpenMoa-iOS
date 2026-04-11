@@ -1,19 +1,17 @@
+import Combine
 import SwiftUI
 import UIKit
 
 final class KeyboardViewController: UIInputViewController {
-    private enum Layout {
-        static let regularHeight: CGFloat = 296
-        static let compactHeight: CGFloat = 236
-    }
-
     private let viewModel = KeyboardViewModel()
     private var hostingController: UIHostingController<KeyboardView>?
     private var heightConstraint: NSLayoutConstraint?
+    private var cancellables = Set<AnyCancellable>()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel.delegate = self
+        observeViewModel()
         configureHeight()
         configureKeyboardView()
     }
@@ -64,14 +62,26 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private var preferredKeyboardHeight: CGFloat {
-        traitCollection.verticalSizeClass == .compact
-            ? Layout.compactHeight
-            : Layout.regularHeight
+        metrics.preferredHeight(for: viewModel.mode)
+    }
+
+    private var metrics: KeyboardLayoutMetrics {
+        traitCollection.verticalSizeClass == .compact ? .compact : .regular
     }
 
     private func updateHeightConstraint() {
         // Apply the custom keyboard height before layout so the system default height does not flash first.
         heightConstraint?.constant = preferredKeyboardHeight
+    }
+
+    private func observeViewModel() {
+        viewModel.$mode
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.view.setNeedsUpdateConstraints()
+                self?.updateHeightConstraint()
+            }
+            .store(in: &cancellables)
     }
 
     private func syncTraits() {

@@ -26,6 +26,62 @@ private enum CrossSwipeOutput {
     case left
 }
 
+struct KeyboardLayoutMetrics {
+    let rowSpacing: CGFloat
+    let horizontalPadding: CGFloat
+    let topPadding: CGFloat
+    let fixedKeyboardWidth: CGFloat?
+    let keyHeight: CGFloat
+    let emojiFontSize: CGFloat
+    let emojiItemHeight: CGFloat
+    let emojiCategoryFontSize: CGFloat
+    let emojiGridMaxHeight: CGFloat
+    let emojiCategoryHeight: CGFloat
+    let emojiBottomRowHeight: CGFloat
+
+    static let regular = KeyboardLayoutMetrics(
+        rowSpacing: 8,
+        horizontalPadding: 10,
+        topPadding: 4,
+        fixedKeyboardWidth: nil,
+        keyHeight: 48,
+        emojiFontSize: 28,
+        emojiItemHeight: 42,
+        emojiCategoryFontSize: 24,
+        emojiGridMaxHeight: 192,
+        emojiCategoryHeight: 42,
+        emojiBottomRowHeight: 48
+    )
+
+    static let compact = KeyboardLayoutMetrics(
+        rowSpacing: 5,
+        horizontalPadding: 6,
+        topPadding: 2.5,
+        fixedKeyboardWidth: 372,
+        keyHeight: 36,
+        emojiFontSize: 24,
+        emojiItemHeight: 30,
+        emojiCategoryFontSize: 20,
+        emojiGridMaxHeight: 135,
+        emojiCategoryHeight: 32,
+        emojiBottomRowHeight: 36
+    )
+
+    func preferredHeight(for mode: KeyboardViewModel.Mode) -> CGFloat {
+        switch mode {
+        case .koreanPunctuation, .englishPunctuation,
+             .koreanNumber, .englishNumber,
+             .koreanArrow, .englishArrow,
+             .koreanPhone, .englishPhone:
+            keyHeight * 4 + rowSpacing * 3 + topPadding
+        case .emoji:
+            emojiCategoryHeight + emojiGridMaxHeight + emojiBottomRowHeight + rowSpacing * 2 + topPadding
+        default:
+            keyHeight * 5 + rowSpacing * 4 + topPadding
+        }
+    }
+}
+
 private struct KeyboardTheme {
     let backgroundTop: Color
     let backgroundBottom: Color
@@ -160,9 +216,7 @@ struct KeyboardView: View {
     @ObservedObject var viewModel: KeyboardViewModel
     let controller: UIInputViewController
     @Environment(\.colorScheme) private var colorScheme
-
-    private let rowSpacing: CGFloat = 8
-    private let keyboardPadding: CGFloat = 10
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     private static let punctuationPages = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
@@ -206,9 +260,30 @@ struct KeyboardView: View {
         .make(for: colorScheme)
     }
 
+    private var metrics: KeyboardLayoutMetrics {
+        verticalSizeClass == .compact ? .compact : .regular
+    }
+
+    private var rowSpacing: CGFloat {
+        metrics.rowSpacing
+    }
+
+    private var horizontalPadding: CGFloat {
+        metrics.horizontalPadding
+    }
+
+    private var topPadding: CGFloat {
+        metrics.topPadding
+    }
+
     var body: some View {
-        keyboardBody
-            .padding(keyboardPadding)
+        GeometryReader { proxy in
+            keyboardBody
+                .padding(.top, topPadding)
+                .padding(.horizontal, horizontalPadding)
+                .frame(width: resolvedKeyboardWidth(for: proxy.size.width))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+        }
     }
 
     @ViewBuilder
@@ -433,13 +508,14 @@ struct KeyboardView: View {
                         viewModel.handleEmoji(emoji)
                     } label: {
                         Text(emoji)
-                            .font(.system(size: 28))
-                            .frame(maxWidth: .infinity, minHeight: 42)
+                            .font(.system(size: metrics.emojiFontSize))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: metrics.emojiItemHeight)
                     }
                     .buttonStyle(OpenMoaKeyStyle(secondary: false, isEnabled: true, theme: theme))
                 }
             }
-            .frame(maxHeight: 220)
+            .frame(height: metrics.emojiGridMaxHeight, alignment: .top)
             HStack(spacing: rowSpacing) {
                 if viewModel.needsGlobeKey {
                     NextKeyboardButton(
@@ -448,7 +524,7 @@ struct KeyboardView: View {
                         foregroundColor: UIColor(theme.secondaryText),
                         borderColor: UIColor(theme.border)
                     )
-                        .frame(width: 48, height: 48)
+                        .frame(width: metrics.emojiBottomRowHeight, height: metrics.emojiBottomRowHeight)
                 }
                 KeyButton(label: "close", secondary: true, theme: theme) {
                     viewModel.toggleEmojiMode()
@@ -463,8 +539,9 @@ struct KeyboardView: View {
                     viewModel.handleEditingAction(.enter)
                 }
             }
-            .frame(height: 48)
+            .frame(height: metrics.emojiBottomRowHeight)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var categoryBar: some View {
@@ -474,8 +551,9 @@ struct KeyboardView: View {
                     viewModel.setEmojiCategory(index)
                 } label: {
                     Text(category.label)
-                        .font(.system(size: 24))
-                        .frame(maxWidth: .infinity, minHeight: 42)
+                        .font(.system(size: metrics.emojiCategoryFontSize))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: metrics.emojiCategoryHeight)
                 }
                 .buttonStyle(
                     OpenMoaKeyStyle(
@@ -494,6 +572,7 @@ struct KeyboardView: View {
                 KeyboardRowView(
                     keys: row,
                     rowSpacing: rowSpacing,
+                    rowHeight: metrics.keyHeight,
                     controller: controller,
                     theme: theme
                 )
@@ -594,11 +673,19 @@ struct KeyboardView: View {
         keys.append(tapKey(rightLabel, secondary: true, action: rightAction).withWidth(1.4))
         return keys
     }
+
+    private func resolvedKeyboardWidth(for availableWidth: CGFloat) -> CGFloat {
+        guard verticalSizeClass == .compact else {
+            return availableWidth
+        }
+        return min(availableWidth, metrics.fixedKeyboardWidth ?? availableWidth)
+    }
 }
 
 private struct KeyboardRowView: View {
     let keys: [KeySpec]
     let rowSpacing: CGFloat
+    let rowHeight: CGFloat
     let controller: UIInputViewController
     let theme: KeyboardTheme
 
@@ -616,12 +703,12 @@ private struct KeyboardRowView: View {
                     keyView(for: key)
                         .frame(
                             width: max(0, availableWidth * key.widthUnits / resolvedTotalUnits),
-                            height: 48
+                            height: rowHeight
                         )
                 }
             }
         }
-        .frame(height: 48)
+        .frame(height: rowHeight)
     }
 
     @ViewBuilder
