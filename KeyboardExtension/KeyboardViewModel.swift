@@ -134,7 +134,9 @@ final class KeyboardViewModel: ObservableObject {
         let previous = displayedComposition
         if let unresolved = assembler.unresolved {
             displayedComposition = displayedComposition.droppingLastCharacters(unresolved.count)
-            assembler.removeLastJamo()
+            assembler.removeForBackspace(
+                deleteStartsWithVowel: KeyboardPreferences.deleteStartsWithVowel
+            )
             if let newUnresolved = assembler.unresolved {
                 displayedComposition += newUnresolved
             }

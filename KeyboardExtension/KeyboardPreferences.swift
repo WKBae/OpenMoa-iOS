@@ -6,6 +6,7 @@ enum KeyboardPreferences {
         static let portraitKeyboardHeight = "portraitKeyboardHeight"
         static let landscapeKeyboardWidth = "landscapeKeyboardWidth"
         static let landscapeKeyboardHeight = "landscapeKeyboardHeight"
+        static let deleteStartsWithVowel = "deleteStartsWithVowel"
         static let koreanLeadingKeyTop = "koreanLeadingKeyTop"
         static let koreanLeadingKeyUpperMiddle = "koreanLeadingKeyUpperMiddle"
         static let koreanLeadingKeyLowerMiddle = "koreanLeadingKeyLowerMiddle"
@@ -17,6 +18,7 @@ enum KeyboardPreferences {
         static let portraitKeyboardHeight: CGFloat = 272
         static let landscapeKeyboardWidth: CGFloat = 372
         static let landscapeKeyboardHeight: CGFloat = 202.5
+        static let deleteStartsWithVowel = true
         static let koreanLeadingKeyTop = "~"
         static let koreanLeadingKeyUpperMiddle = "^"
         static let koreanLeadingKeyLowerMiddle = ";"
@@ -94,6 +96,13 @@ enum KeyboardPreferences {
         )
     }
 
+    static var deleteStartsWithVowel: Bool {
+        resolvedBool(
+            forKey: Key.deleteStartsWithVowel,
+            defaultValue: DefaultValue.deleteStartsWithVowel
+        )
+    }
+
     static func migrateLegacyValuesIfNeeded() {
         guard !(sharedDefaults === UserDefaults.standard) else {
             return
@@ -144,5 +153,28 @@ enum KeyboardPreferences {
         }
 
         return String(rawValue.prefix(3))
+    }
+
+    private static func resolvedBool(forKey key: String, defaultValue: Bool) -> Bool {
+        guard let rawValue = sharedDefaults.object(forKey: key) else {
+            return defaultValue
+        }
+
+        if let number = rawValue as? NSNumber {
+            return number.boolValue
+        }
+
+        if let string = rawValue as? String {
+            switch string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "1", "true", "yes":
+                return true
+            case "0", "false", "no":
+                return false
+            default:
+                break
+            }
+        }
+
+        return defaultValue
     }
 }

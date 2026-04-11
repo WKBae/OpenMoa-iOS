@@ -76,6 +76,24 @@
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 			<key>Title</key>
+			<string>삭제 동작</string>
+			<key>FooterText</key>
+			<string>켜면 한글 조합 중 삭제 키를 눌렀을 때 모음부터 한 단계씩 지웁니다. 끄면 종성이 없는 글자는 한 번에 지우고, 종성이 있으면 종성만 먼저 지웁니다.</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>모음부터 삭제</string>
+			<key>Key</key>
+			<string>deleteStartsWithVowel</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
 			<string>좌측 보조 키</string>
 			<key>FooterText</key>
 			<string>한글 키보드 왼쪽에 있는 4개 보조 키 문자를 바꿉니다. 세로와 가로 모드에 동일하게 적용되며, 비워두면 기본 기호가 사용됩니다.</string>
