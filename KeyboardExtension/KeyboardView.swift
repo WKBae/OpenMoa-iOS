@@ -605,12 +605,19 @@ private struct KeyboardRowView: View {
     var body: some View {
         GeometryReader { proxy in
             let totalUnits = keys.reduce(CGFloat.zero) { $0 + $1.widthUnits }
-            let availableWidth = proxy.size.width - rowSpacing * CGFloat(max(keys.count - 1, 0))
+            let availableWidth = max(
+                0,
+                proxy.size.width - rowSpacing * CGFloat(max(keys.count - 1, 0))
+            )
+            let resolvedTotalUnits = max(totalUnits, 1)
 
             HStack(spacing: rowSpacing) {
                 ForEach(Array(keys.enumerated()), id: \.offset) { _, key in
                     keyView(for: key)
-                        .frame(width: availableWidth * key.widthUnits / totalUnits, height: 48)
+                        .frame(
+                            width: max(0, availableWidth * key.widthUnits / resolvedTotalUnits),
+                            height: 48
+                        )
                 }
             }
         }

@@ -14,16 +14,18 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel.delegate = self
-        configureKeyboardView()
         configureHeight()
-        syncTraits()
+        configureKeyboardView()
     }
 
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        heightConstraint?.constant = traitCollection.verticalSizeClass == .compact
-            ? Layout.compactHeight
-            : Layout.regularHeight
+    override func updateViewConstraints() {
+        updateHeightConstraint()
+        super.updateViewConstraints()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        syncTraits()
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -55,10 +57,21 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func configureHeight() {
-        let constraint = view.heightAnchor.constraint(equalToConstant: Layout.regularHeight)
-        constraint.priority = .defaultHigh
+        let constraint = view.heightAnchor.constraint(equalToConstant: preferredKeyboardHeight)
+        constraint.priority = .required
         constraint.isActive = true
         heightConstraint = constraint
+    }
+
+    private var preferredKeyboardHeight: CGFloat {
+        traitCollection.verticalSizeClass == .compact
+            ? Layout.compactHeight
+            : Layout.regularHeight
+    }
+
+    private func updateHeightConstraint() {
+        // Apply the custom keyboard height before layout so the system default height does not flash first.
+        heightConstraint?.constant = preferredKeyboardHeight
     }
 
     private func syncTraits() {
