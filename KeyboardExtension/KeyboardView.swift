@@ -1025,8 +1025,7 @@ private struct CrossSwipeKey: View {
     private let threshold: CGFloat = 24
 
     var body: some View {
-        Text(label)
-            .font(.system(size: 15, weight: .semibold, design: .rounded))
+        crossSwipeLabel
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .foregroundStyle(isEnabled ? theme.secondaryText : theme.disabledText)
             .modifier(OpenMoaKeyChrome(secondary: true, isEnabled: isEnabled, theme: theme))
@@ -1048,6 +1047,7 @@ private struct CrossSwipeKey: View {
                     }
             )
             .opacity(isEnabled ? 1 : 0.45)
+            .accessibilityLabel(KeyLabelPresentation.make(for: label).accessibilityLabel)
     }
 
     private func resolveOutput(start: CGPoint, end: CGPoint) -> CrossSwipeOutput {
@@ -1065,6 +1065,38 @@ private struct CrossSwipeKey: View {
             return degree < 0 ? .up : .down
         }
         return .left
+    }
+
+    @ViewBuilder
+    private var crossSwipeLabel: some View {
+        if label == ".,?!" {
+            ZStack {
+                Text(",")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .offset(y: -7)
+
+                HStack {
+                    Text("?")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                    Spacer(minLength: 0)
+                    Text("!")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 8)
+
+                Text(".")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .baselineOffset(-2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            }
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Text(label)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+        }
     }
 }
 

@@ -53,6 +53,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 
 - `KeyboardView`: SwiftUI 기반 키보드 레이아웃
 - `NextKeyboardButton`: 시스템 키보드 전환 버튼 브리지
+- 기본 한글 레이아웃의 `.,?!` 키는 상/하/좌/우 스와이프 방향을 보이도록 4방향 배치로 표시됨
 - `ContentView`: 호스트 앱에서 키보드 활성화 방법과 iOS 제약사항 안내
 
 **4. 상태 관리 계층 (`KeyboardViewModel.swift`)**
