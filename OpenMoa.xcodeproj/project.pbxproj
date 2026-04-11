@@ -21,6 +21,7 @@
 		A20000000000000000000012 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* LaunchScreen.storyboard */; };
 		A20000000000000000000013 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* Settings.bundle */; };
 		A20000000000000000000014 /* KeyboardPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000021 /* KeyboardPreferences.swift */; };
+		CD2467502F8A41FE00A6B990 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CD24674F2F8A41FE00A6B990 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,10 +66,11 @@
 		A10000000000000000000015 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A10000000000000000000016 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		A10000000000000000000017 /* Signing.local.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.example.xcconfig; sourceTree = "<group>"; };
-		A10000000000000000000018 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.plug-in; path = Settings.bundle; sourceTree = SOURCE_ROOT; };
+		A10000000000000000000018 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = SOURCE_ROOT; };
 		A10000000000000000000019 /* OpenMoa.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenMoa.entitlements; sourceTree = "<group>"; };
 		A10000000000000000000020 /* OpenMoaKeyboardExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenMoaKeyboardExtension.entitlements; sourceTree = "<group>"; };
 		A10000000000000000000021 /* KeyboardPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardPreferences.swift; sourceTree = "<group>"; };
+		CD24674F2F8A41FE00A6B990 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +114,7 @@
 		A00000000000000000000004 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				CD24674F2F8A41FE00A6B990 /* AppIcon.icon */,
 				A10000000000000000000001 /* ContentView.swift */,
 				A10000000000000000000002 /* OpenMoaKeyboardHostApp.swift */,
 				A10000000000000000000015 /* LaunchScreen.storyboard */,
@@ -236,6 +239,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD2467502F8A41FE00A6B990 /* AppIcon.icon in Resources */,
 				A20000000000000000000012 /* LaunchScreen.storyboard in Resources */,
 				A20000000000000000000013 /* Settings.bundle in Resources */,
 			);
@@ -312,6 +316,8 @@
 			baseConfigurationReference = A10000000000000000000016 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Config/OpenMoa.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -342,6 +348,8 @@
 			baseConfigurationReference = A10000000000000000000016 /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = Config/OpenMoa.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
