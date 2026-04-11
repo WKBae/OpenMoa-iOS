@@ -6,12 +6,20 @@ enum KeyboardPreferences {
         static let portraitKeyboardHeight = "portraitKeyboardHeight"
         static let landscapeKeyboardWidth = "landscapeKeyboardWidth"
         static let landscapeKeyboardHeight = "landscapeKeyboardHeight"
+        static let koreanLeadingKeyTop = "koreanLeadingKeyTop"
+        static let koreanLeadingKeyUpperMiddle = "koreanLeadingKeyUpperMiddle"
+        static let koreanLeadingKeyLowerMiddle = "koreanLeadingKeyLowerMiddle"
+        static let koreanLeadingKeyBottom = "koreanLeadingKeyBottom"
     }
 
     enum DefaultValue {
         static let portraitKeyboardHeight: CGFloat = 272
         static let landscapeKeyboardWidth: CGFloat = 372
         static let landscapeKeyboardHeight: CGFloat = 202.5
+        static let koreanLeadingKeyTop = "~"
+        static let koreanLeadingKeyUpperMiddle = "^"
+        static let koreanLeadingKeyLowerMiddle = ";"
+        static let koreanLeadingKeyBottom = "*"
     }
 
     private enum RangeLimit {
@@ -27,6 +35,13 @@ enum KeyboardPreferences {
         let portraitKeyboardHeight: CGFloat
         let landscapeKeyboardWidth: CGFloat
         let landscapeKeyboardHeight: CGFloat
+    }
+
+    struct KoreanLeadingKeyValues {
+        let top: String
+        let upperMiddle: String
+        let lowerMiddle: String
+        let bottom: String
     }
 
     static var layoutValues: LayoutValues {
@@ -45,6 +60,27 @@ enum KeyboardPreferences {
                 forKey: Key.landscapeKeyboardHeight,
                 defaultValue: DefaultValue.landscapeKeyboardHeight,
                 range: RangeLimit.landscapeKeyboardHeight
+            )
+        )
+    }
+
+    static var koreanLeadingKeyValues: KoreanLeadingKeyValues {
+        KoreanLeadingKeyValues(
+            top: resolvedString(
+                forKey: Key.koreanLeadingKeyTop,
+                defaultValue: DefaultValue.koreanLeadingKeyTop
+            ),
+            upperMiddle: resolvedString(
+                forKey: Key.koreanLeadingKeyUpperMiddle,
+                defaultValue: DefaultValue.koreanLeadingKeyUpperMiddle
+            ),
+            lowerMiddle: resolvedString(
+                forKey: Key.koreanLeadingKeyLowerMiddle,
+                defaultValue: DefaultValue.koreanLeadingKeyLowerMiddle
+            ),
+            bottom: resolvedString(
+                forKey: Key.koreanLeadingKeyBottom,
+                defaultValue: DefaultValue.koreanLeadingKeyBottom
             )
         )
     }
@@ -87,5 +123,16 @@ enum KeyboardPreferences {
         }
 
         return min(max(numericValue ?? defaultValue, range.lowerBound), range.upperBound)
+    }
+
+    private static func resolvedString(forKey key: String, defaultValue: String) -> String {
+        let rawValue = sharedDefaults.string(forKey: key)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let rawValue, !rawValue.isEmpty else {
+            return defaultValue
+        }
+
+        return String(rawValue.prefix(3))
     }
 }

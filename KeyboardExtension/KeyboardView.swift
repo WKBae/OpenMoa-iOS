@@ -390,24 +390,25 @@ struct KeyboardView: View {
     }
 
     private var koreanRows: [[KeySpec]] {
-        [
+        let leadingKeys = KeyboardPreferences.koreanLeadingKeyValues
+        return [
             [
-                tapKey("~", secondary: true) { viewModel.handleText("~") },
+                tapKey(leadingKeys.top, secondary: true) { viewModel.handleText(leadingKeys.top) },
                 gestureKey("ㅃ"), gestureKey("ㅉ"), gestureKey("ㄸ"), gestureKey("ㄲ"), gestureKey("ㅆ"),
                 tapKey("emoji", secondary: true) { viewModel.toggleEmojiMode() },
             ],
             [
-                tapKey("^", secondary: true) { viewModel.handleText("^") },
+                tapKey(leadingKeys.upperMiddle, secondary: true) { viewModel.handleText(leadingKeys.upperMiddle) },
                 gestureKey("ㅂ"), gestureKey("ㅈ"), gestureKey("ㄷ"), gestureKey("ㄱ"), gestureKey("ㅅ"),
                 repeatKey("delete", secondary: true) { viewModel.handleBackspace() },
             ],
             [
-                tapKey(";", secondary: true) { viewModel.handleText(";") },
+                tapKey(leadingKeys.lowerMiddle, secondary: true) { viewModel.handleText(leadingKeys.lowerMiddle) },
                 gestureKey("ㅁ"), gestureKey("ㄴ"), gestureKey("ㅇ"), gestureKey("ㄹ"), gestureKey("ㅎ"),
                 tapKey("ㅣ", secondary: true) { viewModel.handleStandaloneVowel("ㅣ") },
             ],
             [
-                tapKey("*", secondary: true) { viewModel.handleText("*") },
+                tapKey(leadingKeys.bottom, secondary: true) { viewModel.handleText(leadingKeys.bottom) },
                 gestureKey("ㅋ"), gestureKey("ㅌ"), gestureKey("ㅊ"), gestureKey("ㅍ"),
                 tapKey("ㅡ", secondary: true) { viewModel.handleStandaloneVowel("ㅡ") },
                 tapKey("ㆍ", secondary: true) { viewModel.handleStandaloneVowel("ㆍ") },

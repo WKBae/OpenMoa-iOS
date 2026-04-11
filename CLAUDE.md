@@ -104,7 +104,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 - `OpenMoa.xcodeproj/project.pbxproj`: 타깃, 번들 ID, 빌드 설정
 - `Config/HostApp-Info.plist`: 호스트 앱 정보
 - `Config/KeyboardExtension-Info.plist`: 키보드 익스텐션 정보
-- `Settings.bundle/Root.plist`: 설정 앱에 노출되는 키보드 레이아웃 설정
+- `Settings.bundle/Root.plist`: 설정 앱에 노출되는 키보드 레이아웃 및 보조 키 설정
 - `KeyboardExtension/KeyboardPreferences.swift`: 앱 그룹 `UserDefaults`를 통해 설정값을 읽는 헬퍼
 - `RequestsOpenAccess`: 현재 `false`
 
@@ -113,6 +113,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 - 세로 키보드 높이
 - 가로 키보드 너비
 - 가로 키보드 높이
+- 한글 키보드 좌측 보조 키 4개 문자
 
 ## 주요 파일 위치
 

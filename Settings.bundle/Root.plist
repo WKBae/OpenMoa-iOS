@@ -72,6 +72,70 @@
 			<key>MaximumValue</key>
 			<real>320</real>
 		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>좌측 보조 키</string>
+			<key>FooterText</key>
+			<string>한글 키보드 왼쪽에 있는 4개 보조 키 문자를 바꿉니다. 세로와 가로 모드에 동일하게 적용되며, 비워두면 기본 기호가 사용됩니다.</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>첫째 줄</string>
+			<key>Key</key>
+			<string>koreanLeadingKeyTop</string>
+			<key>DefaultValue</key>
+			<string>~</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>둘째 줄</string>
+			<key>Key</key>
+			<string>koreanLeadingKeyUpperMiddle</string>
+			<key>DefaultValue</key>
+			<string>^</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>셋째 줄</string>
+			<key>Key</key>
+			<string>koreanLeadingKeyLowerMiddle</string>
+			<key>DefaultValue</key>
+			<string>;</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>넷째 줄</string>
+			<key>Key</key>
+			<string>koreanLeadingKeyBottom</string>
+			<key>DefaultValue</key>
+			<string>*</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+		</dict>
 	</array>
 	<key>StringsTable</key>
 	<string>Root</string>
