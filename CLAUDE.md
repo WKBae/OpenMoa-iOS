@@ -58,8 +58,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 **4. 상태 관리 계층 (`KeyboardViewModel.swift`)**
 
 - `KeyboardViewModel`: 모든 입력 상태의 중심
-- `Mode`: 한국어/영어 × 기본/특수문자/숫자/방향키/전화번호패드 + 이모지
-- `ShiftState`: 영어 키보드 shift 상태 관리
+- `Mode`: 한국어/문장부호/숫자/전화번호패드 + 이모지
 - 입력 필드의 `UIKeyboardType`에 따라 숫자/전화번호 패드 모드 강제 전환
 
 ### 한글 입력 플로우
@@ -75,18 +74,14 @@ xcodebuild -project OpenMoa.xcodeproj \
 `KeyboardViewModel.Mode`에 새 항목을 추가하면 관련 분기에도 함께 케이스를 추가해야 합니다.
 누락 시 모드 전환은 되더라도 복귀 경로 또는 특정 키 레이아웃이 깨질 수 있습니다. 대상 위치:
 
-- `Mode.language`, `isEnglish`, `isNumber`, `isPhone`
-- `toggleLanguageMode()`
+- `Mode.isNumber`, `Mode.isPhone`
 - `toggleHanjaNumberPunctuationMode()`
-- `toggleArrowMode()`
 - 숫자/전화번호 패드 강제 모드 복귀 로직
 - `KeyboardView` 내 레이아웃 분기
 
-특정 언어 계열에서만 진입 가능한 모드는 해당 언어의 기본/보조 모드와 함께
-묶어서 처리하는 편이 안전합니다.
-
-예) `emoji` 모드는 현재 한국어 계열에서 진입하므로, 언어 복귀 로직에서
-`korean` 계열과 함께 처리합니다.
+현재 하단 `!#1` 키는 `korean -> punctuation -> number -> korean` 순으로 순환합니다.
+`emoji`와 `phone` 같은 보조 모드는 이 순환에 직접 포함되지 않으므로,
+복귀 시 어떤 기본 모드로 돌아갈지 함께 확인하는 편이 안전합니다.
 
 ### 메시지 시스템
 
@@ -114,6 +109,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 - 가로 키보드 너비
 - 가로 키보드 높이
 - 한글 키보드 좌측 보조 키 4개 문자
+- 스페이스 왼쪽 하단 보조 키 문자
 
 ## 주요 파일 위치
 

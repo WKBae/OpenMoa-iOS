@@ -6,13 +6,13 @@
 	<string>group.pe.aioo.openmoa.ios.shared</string>
 	<key>PreferenceSpecifiers</key>
 	<array>
-		<dict>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-			<key>Title</key>
-			<string>세로 키보드 높이</string>
-			<key>FooterText</key>
-			<string>세로 5행 키보드를 기준으로 높이를 조정합니다. 숫자, 문장부호, 방향키, 전화, 이모지 레이아웃도 이 값을 기준으로 함께 조정됩니다.</string>
+			<dict>
+				<key>Type</key>
+				<string>PSGroupSpecifier</string>
+				<key>Title</key>
+				<string>세로 키보드 높이</string>
+				<key>FooterText</key>
+				<string>세로 5행 키보드를 기준으로 높이를 조정합니다. 숫자, 문장부호, 전화, 이모지 레이아웃도 이 값을 기준으로 함께 조정됩니다.</string>
 		</dict>
 		<dict>
 			<key>Type</key>
@@ -122,21 +122,43 @@
 			<key>AutocapitalizationType</key>
 			<string>None</string>
 		</dict>
-		<dict>
-			<key>Type</key>
-			<string>PSTextFieldSpecifier</string>
-			<key>Title</key>
-			<string>넷째 줄</string>
+			<dict>
+				<key>Type</key>
+				<string>PSTextFieldSpecifier</string>
+				<key>Title</key>
+				<string>넷째 줄</string>
 			<key>Key</key>
 			<string>koreanLeadingKeyBottom</string>
 			<key>DefaultValue</key>
 			<string>*</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>AutocapitalizationType</key>
-			<string>None</string>
-		</dict>
-	</array>
+				<key>AutocapitalizationType</key>
+				<string>None</string>
+			</dict>
+			<dict>
+				<key>Type</key>
+				<string>PSGroupSpecifier</string>
+				<key>Title</key>
+				<string>하단 보조 키</string>
+				<key>FooterText</key>
+				<string>스페이스 왼쪽에 표시되는 보조 키 문자를 바꿉니다. 비워두면 기본값인 쉼표가 사용됩니다.</string>
+			</dict>
+			<dict>
+				<key>Type</key>
+				<string>PSTextFieldSpecifier</string>
+				<key>Title</key>
+				<string>스페이스 왼쪽</string>
+				<key>Key</key>
+				<string>spaceLeadingKey</string>
+				<key>DefaultValue</key>
+				<string>,</string>
+				<key>AutocorrectionType</key>
+				<string>No</string>
+				<key>AutocapitalizationType</key>
+				<string>None</string>
+			</dict>
+		</array>
 	<key>StringsTable</key>
 	<string>Root</string>
 </dict>

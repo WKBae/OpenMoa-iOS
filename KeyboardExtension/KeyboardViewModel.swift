@@ -14,50 +14,20 @@ protocol KeyboardViewModelDelegate: AnyObject {
 }
 
 final class KeyboardViewModel: ObservableObject {
-    enum Language {
-        case korean
-        case english
-    }
-
     enum Mode: Equatable {
         case korean
-        case english
-        case koreanPunctuation
-        case englishPunctuation
-        case koreanNumber
-        case englishNumber
-        case koreanArrow
-        case englishArrow
-        case koreanPhone
-        case englishPhone
+        case punctuation
+        case number
+        case phone
         case emoji
 
-        var language: Language {
-            switch self {
-            case .english, .englishPunctuation, .englishNumber, .englishArrow, .englishPhone:
-                return .english
-            case .korean, .koreanPunctuation, .koreanNumber, .koreanArrow, .koreanPhone, .emoji:
-                return .korean
-            }
-        }
-
-        var isEnglish: Bool {
-            language == .english
-        }
-
         var isNumber: Bool {
-            self == .koreanNumber || self == .englishNumber
+            self == .number
         }
 
         var isPhone: Bool {
-            self == .koreanPhone || self == .englishPhone
+            self == .phone
         }
-    }
-
-    enum ShiftState {
-        case off
-        case enabled
-        case locked
     }
 
     enum EditingAction {
@@ -77,9 +47,7 @@ final class KeyboardViewModel: ObservableObject {
         case paste
         case backspace
         case enter
-        case language
         case hanjaNumberPunctuation
-        case arrowMode
         case space
     }
 
@@ -89,7 +57,6 @@ final class KeyboardViewModel: ObservableObject {
     }
 
     @Published private(set) var mode: Mode = .korean
-    @Published private(set) var shiftState: ShiftState = .off
     @Published private(set) var needsGlobeKey = true
     @Published private(set) var returnKeyLabel = "return"
     @Published private(set) var punctuationPage = 0
@@ -117,26 +84,22 @@ final class KeyboardViewModel: ObservableObject {
         switch keyboardType {
         case .numberPad, .decimalPad, .asciiCapableNumberPad:
             forcedMode = .number
-            mode = numberMode(for: mode.language)
+            mode = .number
         case .phonePad, .namePhonePad:
             forcedMode = .phone
-            mode = phoneMode(for: mode.language)
+            mode = .phone
         default:
             if let forcedMode {
                 switch forcedMode {
                 case .number where mode.isNumber:
-                    mode = baseMode(for: mode.language)
+                    mode = .korean
                 case .phone where mode.isPhone:
-                    mode = baseMode(for: mode.language)
+                    mode = .korean
                 default:
                     break
                 }
             }
             forcedMode = nil
-        }
-
-        if mode.isEnglish, shiftState != .locked {
-            shiftState = shouldAutoCapitalize(documentContextBeforeInput) ? .enabled : .off
         }
     }
 
@@ -154,10 +117,7 @@ final class KeyboardViewModel: ObservableObject {
 
     func handleText(_ text: String) {
         commitComposition()
-        delegate?.insertCommittedText(shiftOutput(for: text))
-        if mode.isEnglish, shiftState == .enabled {
-            shiftState = .off
-        }
+        delegate?.insertCommittedText(text)
     }
 
     func handleEmoji(_ emoji: String) {
@@ -184,54 +144,17 @@ final class KeyboardViewModel: ObservableObject {
         delegate?.replaceComposition(previous: previous, current: displayedComposition)
     }
 
-    func toggleShift() {
-        guard mode.isEnglish else {
-            return
-        }
-        shiftState = switch shiftState {
-        case .off: .enabled
-        case .enabled: .locked
-        case .locked: .off
-        }
-    }
-
-    func toggleLanguageMode() {
-        commitComposition()
-        selectionModeEnabled = false
-        switch mode {
-        case .korean:
-            mode = .english
-        case .english:
-            mode = .korean
-        case .englishPunctuation, .englishNumber, .englishArrow, .englishPhone:
-            mode = .english
-        case .koreanPunctuation, .koreanNumber, .koreanArrow, .koreanPhone, .emoji:
-            mode = .korean
-        }
-        if !mode.isEnglish {
-            shiftState = .off
-        }
-    }
-
     func toggleHanjaNumberPunctuationMode() {
         commitComposition()
         selectionModeEnabled = false
         mode = switch mode {
-        case .korean, .koreanNumber, .koreanArrow, .koreanPhone, .emoji:
-            .koreanPunctuation
-        case .english, .englishNumber, .englishArrow, .englishPhone:
-            .englishPunctuation
-        case .koreanPunctuation:
-            .koreanNumber
-        case .englishPunctuation:
-            .englishNumber
+        case .korean, .phone, .emoji:
+            .punctuation
+        case .punctuation:
+            .number
+        case .number:
+            .korean
         }
-    }
-
-    func toggleArrowMode() {
-        commitComposition()
-        selectionModeEnabled = false
-        mode = arrowMode(for: mode.language)
     }
 
     func toggleEmojiMode() {
@@ -255,15 +178,6 @@ final class KeyboardViewModel: ObservableObject {
 
     func setEmojiCategory(_ index: Int) {
         emojiCategory = index
-    }
-
-    func isSupported(_ action: EditingAction) -> Bool {
-        switch action {
-        case .moveUp, .moveDown, .selectAll, .toggleSelection:
-            return false
-        default:
-            return true
-        }
     }
 
     func handleEditingAction(_ action: EditingAction) {
@@ -323,12 +237,8 @@ final class KeyboardViewModel: ObservableObject {
             handleBackspace()
         case .enter:
             handleReturn()
-        case .language:
-            toggleLanguageMode()
         case .hanjaNumberPunctuation:
             toggleHanjaNumberPunctuationMode()
-        case .arrowMode:
-            toggleArrowMode()
         case .space:
             handleSpace()
         }
@@ -430,45 +340,6 @@ final class KeyboardViewModel: ObservableObject {
             commitComposition()
             return
         }
-    }
-
-    private func shiftOutput(for text: String) -> String {
-        guard mode.isEnglish else {
-            return text
-        }
-        switch shiftState {
-        case .off:
-            return text.lowercased()
-        case .enabled, .locked:
-            return text.uppercased()
-        }
-    }
-
-    private func shouldAutoCapitalize(_ context: String?) -> Bool {
-        guard let context, !context.isEmpty else {
-            return true
-        }
-        let trimmed = context.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let last = trimmed.last else {
-            return true
-        }
-        return [".", "!", "?", "\n"].contains(last)
-    }
-
-    private func baseMode(for language: Language) -> Mode {
-        language == .english ? .english : .korean
-    }
-
-    private func numberMode(for language: Language) -> Mode {
-        language == .english ? .englishNumber : .koreanNumber
-    }
-
-    private func phoneMode(for language: Language) -> Mode {
-        language == .english ? .englishPhone : .koreanPhone
-    }
-
-    private func arrowMode(for language: Language) -> Mode {
-        language == .english ? .englishArrow : .koreanArrow
     }
 
     private static func returnKeyLabel(for type: UIReturnKeyType) -> String {

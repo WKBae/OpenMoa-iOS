@@ -106,10 +106,9 @@ struct KeyboardLayoutMetrics {
 
     func preferredHeight(for mode: KeyboardViewModel.Mode) -> CGFloat {
         switch mode {
-        case .koreanPunctuation, .englishPunctuation,
-             .koreanNumber, .englishNumber,
-             .koreanArrow, .englishArrow,
-             .koreanPhone, .englishPhone:
+        case .punctuation,
+             .number,
+             .phone:
             keyHeight * 4 + rowSpacing * 3 + topPadding
         case .emoji:
             emojiCategoryHeight + emojiGridMaxHeight + emojiBottomRowHeight + rowSpacing * 2 + topPadding
@@ -340,6 +339,10 @@ struct KeyboardView: View {
         metrics.topPadding
     }
 
+    private var spaceLeadingKey: String {
+        KeyboardPreferences.spaceLeadingKeyValue
+    }
+
     private var landscapeKeyboardSide: LandscapeKeyboardSide {
         get { LandscapeKeyboardSide(rawValue: landscapeKeyboardSideRaw) ?? .trailing }
         nonmutating set { landscapeKeyboardSideRaw = newValue.rawValue }
@@ -374,15 +377,11 @@ struct KeyboardView: View {
         switch viewModel.mode {
         case .korean:
             renderRows(koreanRows)
-        case .english:
-            renderRows(englishRows)
-        case .koreanPunctuation, .englishPunctuation:
+        case .punctuation:
             renderRows(punctuationRows)
-        case .koreanNumber, .englishNumber:
+        case .number:
             renderRows(numberRows)
-        case .koreanArrow, .englishArrow:
-            renderRows(arrowRows)
-        case .koreanPhone, .englishPhone:
+        case .phone:
             renderRows(phoneRows)
         case .emoji:
             emojiKeyboard
@@ -414,34 +413,7 @@ struct KeyboardView: View {
                 tapKey("ㆍ", secondary: true) { viewModel.handleStandaloneVowel("ㆍ") },
             ],
             bottomControlRow(
-                centerLeftLabel: "한/영",
-                centerLeftAction: { viewModel.handleEditingAction(.language) },
-                centerMiddleLabel: "한자/숫자",
-                centerMiddleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
-                rightAccessory: crossPunctuationKey(),
-                rightLabel: viewModel.returnKeyLabel,
-                rightAction: { viewModel.handleEditingAction(.enter) }
-            ),
-        ]
-    }
-
-    private var englishRows: [[KeySpec]] {
-        let shifted = viewModel.shiftState != .off
-        let numberRow = "1234567890".map { character in
-            tapKey(String(character), secondary: true) { viewModel.handleText(String(character)) }
-        }
-        return [
-            numberRow,
-            letters("qwertyuiop", shifted: shifted),
-            letters("asdfghjkl", shifted: shifted),
-            [tapKey(shiftLabel, secondary: true) { viewModel.toggleShift() }.withWidth(1.4)]
-                + letters("zxcvbnm", shifted: shifted)
-                + [repeatKey("delete", secondary: true) { viewModel.handleBackspace() }.withWidth(1.4)],
-            bottomControlRow(
-                centerLeftLabel: "한/영",
-                centerLeftAction: { viewModel.handleEditingAction(.language) },
-                centerMiddleLabel: "한자/숫자",
-                centerMiddleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
+                cycleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
                 rightAccessory: crossPunctuationKey(),
                 rightLabel: viewModel.returnKeyLabel,
                 rightAction: { viewModel.handleEditingAction(.enter) }
@@ -473,11 +445,7 @@ struct KeyboardView: View {
                 + trailingKeys
                 + [repeatKey("delete", secondary: true) { viewModel.handleBackspace() }],
             bottomControlRow(
-                centerLeftLabel: "한/영",
-                centerLeftAction: { viewModel.handleEditingAction(.language) },
-                centerMiddleLabel: "한자/숫자",
-                centerMiddleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
-                rightAccessory: tapKey("arrow", secondary: true) { viewModel.handleEditingAction(.arrowMode) },
+                cycleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
                 rightLabel: viewModel.returnKeyLabel,
                 rightAction: { viewModel.handleEditingAction(.enter) }
             ),
@@ -508,10 +476,7 @@ struct KeyboardView: View {
                 repeatKey("delete", secondary: true) { viewModel.handleBackspace() },
             ],
             bottomControlRow(
-                centerLeftLabel: "한/영",
-                centerLeftAction: { viewModel.handleEditingAction(.language) },
-                centerMiddleLabel: "한자/숫자",
-                centerMiddleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
+                cycleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
                 extraMiddle: tapKey("0") { viewModel.handleText("0") },
                 rightLabel: viewModel.returnKeyLabel,
                 rightAction: { viewModel.handleEditingAction(.enter) }
@@ -546,40 +511,6 @@ struct KeyboardView: View {
                 tapKey("space") { viewModel.handleEditingAction(.space) },
                 tapKey(viewModel.returnKeyLabel, secondary: true) { viewModel.handleEditingAction(.enter) },
             ].withGlobeIfNeeded(controller: controller, needsGlobeKey: viewModel.needsGlobeKey),
-        ]
-    }
-
-    private var arrowRows: [[KeySpec]] {
-        [
-            arrowRow([
-                arrowKey("copy all", action: .copyAll),
-                arrowKey("copy", action: .copy),
-                arrowKey("up", action: .moveUp),
-                arrowKey("cut", action: .cut),
-                arrowKey("cut all", action: .cutAll),
-            ]),
-            arrowRow([
-                arrowKey("home", action: .moveHome),
-                arrowKey("left", action: .moveLeft),
-                arrowKey("select", action: .toggleSelection),
-                arrowKey("right", action: .moveRight),
-                arrowKey("select all", action: .selectAll),
-            ]),
-            arrowRow([
-                arrowKey("end", action: .moveEnd),
-                arrowKey("delete", action: .deleteForward),
-                arrowKey("down", action: .moveDown),
-                arrowKey("paste", action: .paste),
-                repeatKey("backspace", secondary: true) { viewModel.handleBackspace() },
-            ]),
-            bottomControlRow(
-                centerLeftLabel: "한/영",
-                centerLeftAction: { viewModel.handleEditingAction(.language) },
-                centerMiddleLabel: "한자/숫자",
-                centerMiddleAction: { viewModel.handleEditingAction(.hanjaNumberPunctuation) },
-                rightLabel: viewModel.returnKeyLabel,
-                rightAction: { viewModel.handleEditingAction(.enter) }
-            ),
         ]
     }
 
@@ -664,21 +595,6 @@ struct KeyboardView: View {
         }
     }
 
-    private func letters(_ string: String, shifted: Bool) -> [KeySpec] {
-        string.map { char in
-            let text = shifted ? String(char).uppercased() : String(char)
-            return tapKey(text) { viewModel.handleText(String(char)) }
-        }
-    }
-
-    private var shiftLabel: String {
-        switch viewModel.shiftState {
-        case .off: return "shift"
-        case .enabled: return "shift*"
-        case .locked: return "caps"
-        }
-    }
-
     private func gestureKey(_ consonant: String) -> KeySpec {
         KeySpec(label: consonant, widthUnits: 1, kind: .koreanGesture { gestures in
             viewModel.handleKoreanConsonant(consonant, gestureTokens: gestures)
@@ -691,12 +607,6 @@ struct KeyboardView: View {
 
     private func repeatKey(_ label: String, secondary: Bool = false, enabled: Bool = true, action: @escaping () -> Void) -> KeySpec {
         KeySpec(label: label, widthUnits: 1, secondary: secondary, enabled: enabled, kind: .repeatAction(action))
-    }
-
-    private func arrowKey(_ label: String, action: KeyboardViewModel.EditingAction) -> KeySpec {
-        tapKey(label, secondary: true, enabled: viewModel.isSupported(action)) {
-            viewModel.handleEditingAction(action)
-        }
     }
 
     private func crossPunctuationKey() -> KeySpec {
@@ -714,15 +624,8 @@ struct KeyboardView: View {
         })
     }
 
-    private func arrowRow(_ keys: [KeySpec]) -> [KeySpec] {
-        keys
-    }
-
     private func bottomControlRow(
-        centerLeftLabel: String,
-        centerLeftAction: @escaping () -> Void,
-        centerMiddleLabel: String,
-        centerMiddleAction: @escaping () -> Void,
+        cycleAction: @escaping () -> Void,
         extraMiddle: KeySpec? = nil,
         rightAccessory: KeySpec? = nil,
         rightLabel: String,
@@ -732,11 +635,11 @@ struct KeyboardView: View {
         if viewModel.needsGlobeKey {
             keys.append(KeySpec(label: "globe", widthUnits: 1, secondary: true, enabled: true, kind: .globe))
         }
-        keys.append(tapKey(centerLeftLabel, secondary: true, action: centerLeftAction).withWidth(1.2))
-        keys.append(tapKey(centerMiddleLabel, secondary: true, action: centerMiddleAction).withWidth(1.2))
+        keys.append(tapKey("!#1", secondary: true, action: cycleAction).withWidth(1.2))
         if let extraMiddle {
             keys.append(extraMiddle.withWidth(1))
         }
+        keys.append(tapKey(spaceLeadingKey, secondary: true) { viewModel.handleText(spaceLeadingKey) }.withWidth(0.9))
         keys.append(
             KeySpec(
                 label: "space",
@@ -749,7 +652,7 @@ struct KeyboardView: View {
                     moveCursor: { offset in viewModel.moveCursorHorizontally(by: offset) }
                 )
             )
-                .withWidth(extraMiddle == nil && rightAccessory != nil ? 3 : (extraMiddle != nil || rightAccessory != nil ? 1.6 : 2.6))
+                .withWidth(extraMiddle == nil && rightAccessory != nil ? 3.3 : (extraMiddle != nil || rightAccessory != nil ? 2.1 : 3.7))
         )
         if let rightAccessory {
             keys.append(rightAccessory.withWidth(extraMiddle == nil ? 1 : 1.2))

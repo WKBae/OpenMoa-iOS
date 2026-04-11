@@ -10,6 +10,7 @@ enum KeyboardPreferences {
         static let koreanLeadingKeyUpperMiddle = "koreanLeadingKeyUpperMiddle"
         static let koreanLeadingKeyLowerMiddle = "koreanLeadingKeyLowerMiddle"
         static let koreanLeadingKeyBottom = "koreanLeadingKeyBottom"
+        static let spaceLeadingKey = "spaceLeadingKey"
     }
 
     enum DefaultValue {
@@ -20,6 +21,7 @@ enum KeyboardPreferences {
         static let koreanLeadingKeyUpperMiddle = "^"
         static let koreanLeadingKeyLowerMiddle = ";"
         static let koreanLeadingKeyBottom = "*"
+        static let spaceLeadingKey = ","
     }
 
     private enum RangeLimit {
@@ -85,6 +87,13 @@ enum KeyboardPreferences {
         )
     }
 
+    static var spaceLeadingKeyValue: String {
+        resolvedString(
+            forKey: Key.spaceLeadingKey,
+            defaultValue: DefaultValue.spaceLeadingKey
+        )
+    }
+
     static func migrateLegacyValuesIfNeeded() {
         guard !(sharedDefaults === UserDefaults.standard) else {
             return
@@ -95,6 +104,7 @@ enum KeyboardPreferences {
             Key.portraitKeyboardHeight,
             Key.landscapeKeyboardWidth,
             Key.landscapeKeyboardHeight,
+            Key.spaceLeadingKey,
         ]
 
         for key in keys where sharedDefaults.object(forKey: key) == nil {
