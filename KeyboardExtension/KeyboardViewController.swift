@@ -10,6 +10,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        KeyboardPreferences.migrateLegacyValuesIfNeeded()
         viewModel.delegate = self
         observeViewModel()
         configureHeight()
@@ -66,7 +67,10 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private var metrics: KeyboardLayoutMetrics {
-        traitCollection.verticalSizeClass == .compact ? .compact : .regular
+        let preferences = KeyboardPreferences.layoutValues
+        return traitCollection.verticalSizeClass == .compact
+            ? .compact(preferences: preferences)
+            : .regular(preferences: preferences)
     }
 
     private func updateHeightConstraint() {

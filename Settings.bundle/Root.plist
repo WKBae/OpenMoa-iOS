@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ApplicationGroupContainerIdentifier</key>
+	<string>group.pe.aioo.openmoa.ios.shared</string>
+	<key>PreferenceSpecifiers</key>
+	<array>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>세로 키보드 높이</string>
+			<key>FooterText</key>
+			<string>세로 5행 키보드를 기준으로 높이를 조정합니다. 숫자, 문장부호, 방향키, 전화, 이모지 레이아웃도 이 값을 기준으로 함께 조정됩니다.</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSSliderSpecifier</string>
+			<key>Title</key>
+			<string>세로 키보드 높이</string>
+			<key>Key</key>
+			<string>portraitKeyboardHeight</string>
+			<key>DefaultValue</key>
+			<real>272</real>
+			<key>MinimumValue</key>
+			<real>180</real>
+			<key>MaximumValue</key>
+			<real>420</real>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>가로 키보드 너비</string>
+			<key>FooterText</key>
+			<string>가로 모드에서 표시되는 키보드 패널의 너비를 조정합니다.</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSSliderSpecifier</string>
+			<key>Title</key>
+			<string>가로 키보드 너비</string>
+			<key>Key</key>
+			<string>landscapeKeyboardWidth</string>
+			<key>DefaultValue</key>
+			<real>372</real>
+			<key>MinimumValue</key>
+			<real>220</real>
+			<key>MaximumValue</key>
+			<real>520</real>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>가로 키보드 높이</string>
+			<key>FooterText</key>
+			<string>가로 5행 키보드를 기준으로 높이를 조정합니다. 다른 가로 레이아웃도 이 값을 기준으로 함께 조정됩니다.</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSSliderSpecifier</string>
+			<key>Title</key>
+			<string>가로 키보드 높이</string>
+			<key>Key</key>
+			<string>landscapeKeyboardHeight</string>
+			<key>DefaultValue</key>
+			<real>202.5</real>
+			<key>MinimumValue</key>
+			<real>140</real>
+			<key>MaximumValue</key>
+			<real>320</real>
+		</dict>
+	</array>
+	<key>StringsTable</key>
+	<string>Root</string>
+</dict>
+</plist>

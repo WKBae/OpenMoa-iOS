@@ -104,7 +104,15 @@ xcodebuild -project OpenMoa.xcodeproj \
 - `OpenMoa.xcodeproj/project.pbxproj`: 타깃, 번들 ID, 빌드 설정
 - `Config/HostApp-Info.plist`: 호스트 앱 정보
 - `Config/KeyboardExtension-Info.plist`: 키보드 익스텐션 정보
+- `Settings.bundle/Root.plist`: 설정 앱에 노출되는 키보드 레이아웃 설정
+- `KeyboardExtension/KeyboardPreferences.swift`: 앱 그룹 `UserDefaults`를 통해 설정값을 읽는 헬퍼
 - `RequestsOpenAccess`: 현재 `false`
+
+현재 설정 앱에서 다음 항목을 조정할 수 있습니다.
+
+- 세로 키보드 높이
+- 가로 키보드 너비
+- 가로 키보드 높이
 
 ## 주요 파일 위치
 
@@ -113,10 +121,12 @@ xcodebuild -project OpenMoa.xcodeproj \
 | `KeyboardExtension/KeyboardViewController.swift` | 메인 키보드 익스텐션 컨트롤러 |
 | `KeyboardExtension/KeyboardViewModel.swift` | 키보드 상태 및 입력 처리 |
 | `KeyboardExtension/KeyboardView.swift` | SwiftUI 키보드 레이아웃 |
+| `KeyboardExtension/KeyboardPreferences.swift` | 설정 앱 값 로드 및 기본값 처리 |
 | `KeyboardExtension/NextKeyboardButton.swift` | 다음 키보드 버튼 브리지 |
 | `Sources/OpenMoaKeyboardCore/HangulAssembler.swift` | 한글 자모 조합 엔진 |
 | `Sources/OpenMoaKeyboardCore/MoeumGestureProcessor.swift` | 제스처→모음 변환 |
 | `Sources/OpenMoaKeyboardCore/HangulUnicode.swift` | 한글 유니코드 조합 유틸리티 |
 | `App/ContentView.swift` | 호스트 앱 안내 화면 |
 | `Config/KeyboardExtension-Info.plist` | 키보드 익스텐션 설정 |
+| `Settings.bundle/Root.plist` | 설정 앱에 표시되는 환경설정 항목 |
 | `Package.swift` | 공유 코어 모듈과 테스트 타깃 정의 |

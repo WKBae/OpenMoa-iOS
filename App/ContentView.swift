@@ -51,7 +51,7 @@ struct ContentView: View {
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("This host app exists to install and explain the custom keyboard extension. The keyboard itself lives in the OpenMoa Keyboard target.")
+            Text("This host app exists to install and explain the custom keyboard extension. The keyboard itself lives in the OpenMoa Keyboard target, and the Settings app now exposes portrait and landscape layout controls.")
                 .font(.system(size: 20, weight: .medium, design: .rounded))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

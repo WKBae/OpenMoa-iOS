@@ -60,7 +60,7 @@ struct KeyboardLayoutMetrics {
     let emojiCategoryHeight: CGFloat
     let emojiBottomRowHeight: CGFloat
 
-    static let regular = KeyboardLayoutMetrics(
+    private static let regularBase = KeyboardLayoutMetrics(
         rowSpacing: 8,
         horizontalPadding: 10,
         topPadding: 4,
@@ -74,7 +74,7 @@ struct KeyboardLayoutMetrics {
         emojiBottomRowHeight: 48
     )
 
-    static let compact = KeyboardLayoutMetrics(
+    private static let compactBase = KeyboardLayoutMetrics(
         rowSpacing: 5,
         horizontalPadding: 6,
         topPadding: 2.5,
@@ -88,6 +88,22 @@ struct KeyboardLayoutMetrics {
         emojiBottomRowHeight: 36
     )
 
+    static func regular(preferences: KeyboardPreferences.LayoutValues) -> KeyboardLayoutMetrics {
+        scaled(
+            from: regularBase,
+            fiveRowHeight: preferences.portraitKeyboardHeight,
+            fixedKeyboardWidth: nil
+        )
+    }
+
+    static func compact(preferences: KeyboardPreferences.LayoutValues) -> KeyboardLayoutMetrics {
+        scaled(
+            from: compactBase,
+            fiveRowHeight: preferences.landscapeKeyboardHeight,
+            fixedKeyboardWidth: preferences.landscapeKeyboardWidth
+        )
+    }
+
     func preferredHeight(for mode: KeyboardViewModel.Mode) -> CGFloat {
         switch mode {
         case .koreanPunctuation, .englishPunctuation,
@@ -100,6 +116,29 @@ struct KeyboardLayoutMetrics {
         default:
             keyHeight * 5 + rowSpacing * 4 + topPadding
         }
+    }
+
+    private static func scaled(
+        from base: KeyboardLayoutMetrics,
+        fiveRowHeight: CGFloat,
+        fixedKeyboardWidth: CGFloat?
+    ) -> KeyboardLayoutMetrics {
+        let baseHeight = base.preferredHeight(for: .korean)
+        let scale = max(0.75, fiveRowHeight / max(baseHeight, 1))
+
+        return KeyboardLayoutMetrics(
+            rowSpacing: base.rowSpacing * scale,
+            horizontalPadding: base.horizontalPadding,
+            topPadding: base.topPadding * scale,
+            fixedKeyboardWidth: fixedKeyboardWidth,
+            keyHeight: base.keyHeight * scale,
+            emojiFontSize: base.emojiFontSize * scale,
+            emojiItemHeight: base.emojiItemHeight * scale,
+            emojiCategoryFontSize: base.emojiCategoryFontSize * scale,
+            emojiGridMaxHeight: base.emojiGridMaxHeight * scale,
+            emojiCategoryHeight: base.emojiCategoryHeight * scale,
+            emojiBottomRowHeight: base.emojiBottomRowHeight * scale
+        )
     }
 }
 
@@ -283,7 +322,10 @@ struct KeyboardView: View {
     }
 
     private var metrics: KeyboardLayoutMetrics {
-        verticalSizeClass == .compact ? .compact : .regular
+        let preferences = KeyboardPreferences.layoutValues
+        return verticalSizeClass == .compact
+            ? .compact(preferences: preferences)
+            : .regular(preferences: preferences)
     }
 
     private var rowSpacing: CGFloat {
