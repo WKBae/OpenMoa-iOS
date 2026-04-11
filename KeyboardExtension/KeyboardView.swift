@@ -26,6 +26,27 @@ private enum CrossSwipeOutput {
     case left
 }
 
+private enum LandscapeKeyboardSide: String {
+    case leading
+    case trailing
+
+    var keyboardAlignment: Alignment {
+        self == .leading ? .topLeading : .topTrailing
+    }
+
+    var handleAlignment: Alignment {
+        self == .leading ? .trailing : .leading
+    }
+
+    var handleSymbolName: String {
+        self == .leading ? "chevron.right" : "chevron.left"
+    }
+
+    var accessibilityLabel: String {
+        self == .leading ? "Move keyboard right" : "Move keyboard left"
+    }
+}
+
 struct KeyboardLayoutMetrics {
     let rowSpacing: CGFloat
     let horizontalPadding: CGFloat
@@ -215,6 +236,7 @@ private enum KeyLabelPresentation {
 struct KeyboardView: View {
     @ObservedObject var viewModel: KeyboardViewModel
     let controller: UIInputViewController
+    @AppStorage("landscapeKeyboardSide") private var landscapeKeyboardSideRaw = LandscapeKeyboardSide.trailing.rawValue
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
@@ -276,13 +298,32 @@ struct KeyboardView: View {
         metrics.topPadding
     }
 
+    private var landscapeKeyboardSide: LandscapeKeyboardSide {
+        get { LandscapeKeyboardSide(rawValue: landscapeKeyboardSideRaw) ?? .trailing }
+        nonmutating set { landscapeKeyboardSideRaw = newValue.rawValue }
+    }
+
+    private var keyboardAlignment: Alignment {
+        verticalSizeClass == .compact ? landscapeKeyboardSide.keyboardAlignment : .topTrailing
+    }
+
     var body: some View {
         GeometryReader { proxy in
-            keyboardBody
-                .padding(.top, topPadding)
-                .padding(.horizontal, horizontalPadding)
-                .frame(width: resolvedKeyboardWidth(for: proxy.size.width))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            let keyboardWidth = resolvedKeyboardWidth(for: proxy.size.width)
+            let handleWidth = max(0, proxy.size.width - keyboardWidth)
+
+            ZStack {
+                keyboardBody
+                    .padding(.top, topPadding)
+                    .padding(.horizontal, horizontalPadding)
+                    .frame(width: keyboardWidth)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: keyboardAlignment)
+
+                if shouldShowLandscapeHandle(handleWidth: handleWidth) {
+                    landscapeToggleHandle(width: handleWidth, height: proxy.size.height)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: landscapeKeyboardSide.handleAlignment)
+                }
+            }
         }
     }
 
@@ -679,6 +720,28 @@ struct KeyboardView: View {
             return availableWidth
         }
         return min(availableWidth, metrics.fixedKeyboardWidth ?? availableWidth)
+    }
+
+    private func landscapeToggleHandle(width: CGFloat, height: CGFloat) -> some View {
+        Button {
+            landscapeKeyboardSide = landscapeKeyboardSide == .trailing ? .leading : .trailing
+        } label: {
+            ZStack {
+                Rectangle()
+                    .fill(theme.secondaryKey.opacity(0.001))
+                Image(systemName: landscapeKeyboardSide.handleSymbolName)
+                    .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    .foregroundStyle(theme.secondaryText.opacity(0.55))
+            }
+            .frame(width: width, height: height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(landscapeKeyboardSide.accessibilityLabel)
+    }
+
+    private func shouldShowLandscapeHandle(handleWidth: CGFloat) -> Bool {
+        verticalSizeClass == .compact && handleWidth >= 64
     }
 }
 
