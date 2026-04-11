@@ -212,21 +212,10 @@ struct KeyboardView: View {
                 GlassEffectContainer(spacing: rowSpacing) {
                     keyboardBody
                         .padding(keyboardPadding)
-                        .background(
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .fill(theme.panelFill)
-                        )
                 }
             } else {
                 keyboardBody
                     .padding(keyboardPadding)
-                    .background(
-                        LinearGradient(
-                            colors: [theme.backgroundTop, theme.backgroundBottom],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
             }
         }
     }
