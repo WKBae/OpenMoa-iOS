@@ -6,13 +6,14 @@ private struct KeySpec {
         case tap(() -> Void)
         case spaceCursor(tap: () -> Void, beginScrub: () -> Void, moveCursor: (Int) -> Void)
         case repeatAction(() -> Void)
-        case koreanGesture(( [String]) -> Void)
+        case koreanGesture(action: ([String]) -> Void, longPressAction: (() -> Void)?)
         case crossSwipe((CrossSwipeOutput) -> Void)
         case globe
     }
 
     let label: String
     let widthUnits: CGFloat
+    var hint: String?
     var secondary = false
     var enabled = true
     let kind: Kind
@@ -596,9 +597,20 @@ struct KeyboardView: View {
     }
 
     private func gestureKey(_ consonant: String) -> KeySpec {
-        KeySpec(label: consonant, widthUnits: 1, kind: .koreanGesture { gestures in
-            viewModel.handleKoreanConsonant(consonant, gestureTokens: gestures)
-        })
+        let hint = numberHint(for: consonant)
+        return KeySpec(
+            label: consonant,
+            widthUnits: 1,
+            hint: hint,
+            kind: .koreanGesture(
+                action: { gestures in
+                    viewModel.handleKoreanConsonant(consonant, gestureTokens: gestures)
+                },
+                longPressAction: hint.map { digit in
+                    { viewModel.handleText(digit) }
+                }
+            )
+        )
     }
 
     private func tapKey(_ label: String, secondary: Bool = false, enabled: Bool = true, action: @escaping () -> Void) -> KeySpec {
@@ -607,6 +619,22 @@ struct KeyboardView: View {
 
     private func repeatKey(_ label: String, secondary: Bool = false, enabled: Bool = true, action: @escaping () -> Void) -> KeySpec {
         KeySpec(label: label, widthUnits: 1, secondary: secondary, enabled: enabled, kind: .repeatAction(action))
+    }
+
+    private func numberHint(for consonant: String) -> String? {
+        switch consonant {
+        case "ㅂ": return "1"
+        case "ㅈ": return "2"
+        case "ㄷ": return "3"
+        case "ㄱ": return "4"
+        case "ㅅ": return "5"
+        case "ㅁ": return "6"
+        case "ㄴ": return "7"
+        case "ㅇ": return "8"
+        case "ㄹ": return "9"
+        case "ㅎ": return "0"
+        default: return nil
+        }
     }
 
     private func crossPunctuationKey() -> KeySpec {
@@ -737,8 +765,15 @@ private struct KeyboardRowView: View {
             )
         case .repeatAction(let action):
             RepeatActionButton(label: key.label, secondary: key.secondary, isEnabled: key.enabled, theme: theme, action: action)
-        case .koreanGesture(let action):
-            KoreanGestureKey(label: key.label, isEnabled: key.enabled, theme: theme, action: action)
+        case .koreanGesture(let action, let longPressAction):
+            KoreanGestureKey(
+                label: key.label,
+                hint: key.hint,
+                isEnabled: key.enabled,
+                theme: theme,
+                action: action,
+                longPressAction: longPressAction
+            )
         case .crossSwipe(let action):
             CrossSwipeKey(label: key.label, isEnabled: key.enabled, theme: theme, action: action)
         case .globe:
@@ -792,21 +827,40 @@ private struct KeyButton: View {
 
 private struct KoreanGestureKey: View {
     let label: String
+    let hint: String?
     var isEnabled = true
     let theme: KeyboardTheme
     let action: ([String]) -> Void
+    let longPressAction: (() -> Void)?
 
+    @State private var startPoint: CGPoint?
     @State private var lastPoint: CGPoint?
+    @State private var latestPoint: CGPoint?
     @State private var tokens: [String] = []
+    @State private var longPressTimer: Timer?
+    @State private var didTriggerLongPress = false
+    @State private var isPressed = false
 
     private let threshold: CGFloat = 26
+    private let tapSlop: CGFloat = 10
+    private let longPressThreshold: TimeInterval = 0.35
 
     var body: some View {
-        Text(label)
-            .font(.system(size: 22, weight: .bold, design: .rounded))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack(alignment: .topTrailing) {
+            Text(label)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if let hint {
+                Text(hint)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(isEnabled ? theme.primaryText.opacity(0.45) : theme.disabledText)
+                    .padding(.top, 6)
+                    .padding(.trailing, 8)
+            }
+        }
             .foregroundStyle(isEnabled ? theme.primaryText : theme.disabledText)
-            .modifier(OpenMoaKeyChrome(secondary: false, isEnabled: isEnabled, theme: theme))
+            .modifier(OpenMoaKeyChrome(secondary: false, isEnabled: isEnabled, pressed: isPressed, theme: theme))
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -814,8 +868,15 @@ private struct KoreanGestureKey: View {
                         guard isEnabled else {
                             return
                         }
-                        if lastPoint == nil {
-                            lastPoint = value.startLocation
+                        if startPoint == nil {
+                            beginTouch(at: value.startLocation)
+                        }
+                        latestPoint = value.location
+                        guard !didTriggerLongPress else {
+                            return
+                        }
+                        if distanceFromStart() > tapSlop {
+                            cancelLongPressTimer()
                         }
                         guard let point = lastPoint else {
                             return
@@ -826,6 +887,7 @@ private struct KoreanGestureKey: View {
                         guard distance > threshold else {
                             return
                         }
+                        cancelLongPressTimer()
                         if let token = gestureToken(dx: dx, dy: dy) {
                             tokens.append(token)
                         }
@@ -833,14 +895,22 @@ private struct KoreanGestureKey: View {
                     }
                     .onEnded { _ in
                         guard isEnabled else {
+                            reset()
                             return
                         }
-                        action(tokens)
-                        lastPoint = nil
-                        tokens.removeAll()
+                        if !didTriggerLongPress {
+                            action(tokens)
+                        }
+                        reset()
                     }
             )
             .opacity(isEnabled ? 1 : 0.45)
+            .animation(.easeOut(duration: 0.08), value: isPressed)
+            .accessibilityLabel(KeyLabelPresentation.make(for: label).accessibilityLabel)
+            .accessibilityHint(hint.map { "Long press for \($0)" } ?? "")
+            .onDisappear {
+                reset()
+            }
     }
 
     private func gestureToken(dx: CGFloat, dy: CGFloat) -> String? {
@@ -861,6 +931,50 @@ private struct KoreanGestureKey: View {
             return "ㅓ"
         }
         return nil
+    }
+
+    private func beginTouch(at point: CGPoint) {
+        startPoint = point
+        lastPoint = point
+        latestPoint = point
+        isPressed = true
+        scheduleLongPressIfNeeded()
+    }
+
+    private func scheduleLongPressIfNeeded() {
+        guard longPressAction != nil else {
+            return
+        }
+        cancelLongPressTimer()
+        longPressTimer = Timer.scheduledTimer(withTimeInterval: longPressThreshold, repeats: false) { _ in
+            guard !self.didTriggerLongPress, self.tokens.isEmpty, self.distanceFromStart() <= self.tapSlop else {
+                return
+            }
+            self.didTriggerLongPress = true
+            self.longPressAction?()
+        }
+    }
+
+    private func cancelLongPressTimer() {
+        longPressTimer?.invalidate()
+        longPressTimer = nil
+    }
+
+    private func distanceFromStart() -> CGFloat {
+        guard let startPoint, let latestPoint else {
+            return .zero
+        }
+        return hypot(latestPoint.x - startPoint.x, latestPoint.y - startPoint.y)
+    }
+
+    private func reset() {
+        cancelLongPressTimer()
+        startPoint = nil
+        lastPoint = nil
+        latestPoint = nil
+        tokens.removeAll()
+        didTriggerLongPress = false
+        isPressed = false
     }
 }
 
@@ -1252,7 +1366,7 @@ private struct OpenMoaKeyChrome: ViewModifier {
 
 private extension KeySpec {
     func withWidth(_ widthUnits: CGFloat) -> KeySpec {
-        KeySpec(label: label, widthUnits: widthUnits, secondary: secondary, enabled: enabled, kind: kind)
+        KeySpec(label: label, widthUnits: widthUnits, hint: hint, secondary: secondary, enabled: enabled, kind: kind)
     }
 }
 

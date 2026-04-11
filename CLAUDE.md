@@ -7,6 +7,7 @@ working with code in this repository.
 
 **OpenMoa**는 삼성 모아키 한국어 입력 방식을 재구현한 오픈소스 iOS 커스텀 키보드 프로젝트입니다.
 자음 키를 누른 채 방향으로 드래그하여 모음을 입력하는 제스처 기반 한글 입력 방식을 사용합니다.
+기본 한글 자판의 `ㅂㅈㄷㄱㅅㅁㄴㅇㄹㅎ` 키에는 우상단 보조 숫자 `1~9,0`이 표시되며, 길게 누르면 해당 숫자를 바로 입력할 수 있습니다.
 
 - 원본 Android 버전 저장소: `https://github.com/AiOO/OpenMoa`
 - 호스트 앱 번들 ID: `pe.aioo.openmoa.ios`
@@ -53,6 +54,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 
 - `KeyboardView`: SwiftUI 기반 키보드 레이아웃
 - `NextKeyboardButton`: 시스템 키보드 전환 버튼 브리지
+- 기본 한글 레이아웃의 `ㅂㅈㄷㄱㅅㅁㄴㅇㄹㅎ` 키는 우상단 숫자 힌트를 표시하고, 길게 누르면 숫자 입력으로 동작함
 - 기본 한글 레이아웃의 `.,?!` 키는 상/하/좌/우 스와이프 방향을 보이도록 4방향 배치로 표시됨
 - `ContentView`: 호스트 앱에서 키보드 활성화 방법과 iOS 제약사항 안내
 
@@ -64,7 +66,7 @@ xcodebuild -project OpenMoa.xcodeproj \
 
 ### 한글 입력 플로우
 
-1. 사용자가 한국어 키를 누르거나 드래그함
+1. 사용자가 한국어 키를 탭하거나 드래그하고, 일부 자음 키는 길게 눌러 숫자를 입력할 수 있음
 2. `KeyboardView`가 입력 이벤트를 `KeyboardViewModel`에 전달함
 3. `MoeumGestureProcessor`가 제스처 시퀀스를 모음으로 변환함
 4. `HangulAssembler`가 자음+모음을 조합해 조합 중 문자열을 계산함
