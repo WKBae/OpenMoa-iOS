@@ -990,7 +990,7 @@ private struct SpaceCursorKey: View {
     private let longPressThreshold: TimeInterval = 0.35
     private let tapSlop: CGFloat = 10
     private let stepWidth: CGFloat = 9
-    private let repeatActivationDistance: CGFloat = 72
+    private let repeatActivationDistance: CGFloat = 108
     private let repeatInterval: TimeInterval = 0.06
 
     var body: some View {
